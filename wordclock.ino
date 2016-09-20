@@ -8,6 +8,10 @@
 #include "index.html.h";
 #include "microajax.js.h";
 #include "milligram.min.css.h";
+#include "colors.js.h";
+#include "colorPicker.data.js.h";
+#include "colorPicker.js.h";
+#include "jsColor.js.h";
                     
 const char* words = "ESKISTAFUNFZEHNZWANZIGDREIVIERTELVORFUNNACHKHALBAELFUNFEINSXAMZWEIDREIAUJVIERSECHSNLACHTSIEBENZWOLFZEHNEUNKUHR";
 //                   01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
@@ -114,6 +118,12 @@ void setup() {
   server.on ( "/index.html", []() { server.send ( 200, "text/html", index_html );  } );
   server.on ( "/milligram.min.css", []() { server.send ( 200, "text/html", milligram_min_css );  } );
   server.on ( "/microajax.js", []() { server.send ( 200, "text/html", microajax_js );  } );
+
+  server.on ( "/colors.js.h", []() { server.send ( 200, "text/html", colors_js );  } );
+  server.on ( "/colorPicker.data.js.h", []() { server.send ( 200, "text/html", colorPicker_data_js );  } );
+  server.on ( "/colorPicker.js.h", []() { server.send ( 200, "text/html", colorPicker_js );  } );
+  server.on ( "/jsColor.js", []() { server.send ( 200, "text/html", jsColor_js );  } );
+
   server.on ( "/serve/clock", serveclock );
   server.on ( "/serve/dynamic", servedynamic );
   server.on ( "/serve/update", serveupdate );

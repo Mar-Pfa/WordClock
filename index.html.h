@@ -1,18 +1,26 @@
-const char index_html[] PROGMEM = R"=====(<html>
-    <head>        
+const char index_html[] PROGMEM = R"=====(<!DOCTYPE html>
+<html>
+    <head>     
+       	<meta charset='utf-8'>   
         <title>Clock Website Admin</title>
         <link rel="stylesheet" href="milligram.min.css">
         <script src="microajax.js"></script>
     </head>
 <body>    
+    <script type="text/javascript" src="colors.js"></script>
+    <script type="text/javascript" src="colorPicker.data.js"></script>
+    <script type="text/javascript" src="colorPicker.js"></script>
+    <script type="text/javascript" src="jsColor.js"></script>    
     <form>
         <h3>Wifi Connection Settings:</h3>
         <fieldset>
             <label for="ssid">SSID:</label>
-            <input type="text" placeholder="ssid" id="ssid">
+            <input type="text" placeholder="ssid" id="ssid" />
             <label for="password">Password:</label>
-            <input type="password" placeholder="password" id="password">
-            <input class="button-primary" type="submit" value="Update Settings" onclick="storeSsid();return false;">
+            <input type="password" placeholder="password" id="password" />            
+            <label for="color">Farbe</label>
+	        <input class="color" value="" id="color" />
+            <input class="button-primary" type="submit" value="Update Settings" onclick="storeSsid();return false;" />
         </fieldset>
     </form>
     <pre id="clock"></pre>
@@ -54,9 +62,19 @@ const char index_html[] PROGMEM = R"=====(<html>
                         }
                     });
                 }
+                var colors = jsColorPicker('input.color', {
+                    customBG: '#fff',
+                    readOnly: true,
+                    // patch: false,
+                    init: function(elm, colors) { // colors is a different instance (not connected to colorPicker)
+                        elm.style.backgroundColor = elm.value;
+                        elm.style.color = colors.rgbaMixCustom.luminance > 0.22 ? '#222' : '#ddd';
+                    },
+                    // appendTo: document.querySelector('.samples')
+                });                
                 RefreshClock();
                 setInterval(function (){ RefreshClock(); },10000);                                
-            });
+            });            
         }, false);
 
     </script>
