@@ -1,4 +1,4 @@
-const char colorPicker_js[] PROGMEM = R"=====(;(function(window, undefined){
+const char colorPicker_js[] PROGMEM = R"=====(﻿;(function(window, undefined){
 	"use strict"
 
 	var _data = window.ColorPicker, // will be deleted in buildView() and holds:

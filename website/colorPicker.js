@@ -1,4 +1,4 @@
-;(function(window, undefined){
+﻿;(function(window, undefined){
 	"use strict"
 
 	var _data = window.ColorPicker, // will be deleted in buildView() and holds:

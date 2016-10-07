@@ -1,6 +1,10 @@
 var express = require('express');
 var app = express();
 
+app.use(function (req, res, next) {
+  console.log('Time:', new Date().toISOString()+" - "+req.originalUrl);
+  next();
+});
 app.use(express.static(__dirname));
 
 /*

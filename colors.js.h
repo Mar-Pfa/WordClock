@@ -17,7 +17,7 @@ const char colors_js[] PROGMEM = R"=====(;(function(window, undefined){
 		_colors = {},
 
 		// http://www.brucelindbloom.com/index.html?Eqn_RGB_XYZ_Matrix.html for more
-		XYZMatrix = { // Observer = 2° (CIE 1931), Illuminant = D65
+		XYZMatrix = { 
 			X: [ 0.4124564,  0.3575761,  0.1804375],
 			Y: [ 0.2126729,  0.7151522,  0.0721750],
 			Z: [ 0.0193339,  0.1191920,  0.9503041],
@@ -44,7 +44,7 @@ const char colors_js[] PROGMEM = R"=====(;(function(window, undefined){
 				// convertCallback: undefined,
 				// allMixDetails: false
 			};
-			initInstance(this, options || {});
+			initInstance(this, options || {});
 		},
 		initInstance = function(THIS, options) {
 			var matrix,
@@ -156,7 +156,7 @@ const char colors_js[] PROGMEM = R"=====(;(function(window, undefined){
 	};
 
 	Colors.prototype.toString = function(colorMode, forceAlpha) {
-		return ColorConverter.color2text((colorMode || 'rgb').toLowerCase(), this.colors, forceAlpha);
+		return ColorConverter.color2text((colorMode || 'rgb').toLowerCase(), this.colors, forceAlpha);
 	};
 
 
@@ -374,12 +374,12 @@ const char colors_js[] PROGMEM = R"=====(;(function(window, undefined){
 		color2text: function(colorMode, colors, forceAlpha) {
 			var alpha = forceAlpha !== false && _math.round(colors.alpha * 100) / 100,
 				hasAlpha = typeof alpha === 'number' &&
-					forceAlpha !== false && (forceAlpha || alpha !== 1),
+				forceAlpha !== false && (forceAlpha || alpha !== 1),
 				RGB = colors.RND.rgb,
 				HSL = colors.RND.hsl,
 				shouldBeHex = colorMode === 'hex' && hasAlpha,
 				isHex = colorMode === 'hex' && !shouldBeHex,
-				isRgb = colorMode === 'rgb' || shouldBeHex,
+				isRgb = colorMode === 'rgb' || shouldBeHex,
 				innerText = isRgb ? RGB.r + ', ' + RGB.g + ', ' + RGB.b :
 					!isHex ? HSL.h + ', ' + HSL.s + '%, ' + HSL.l + '%' :
 					'#' + colors.HEX;
