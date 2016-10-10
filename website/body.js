@@ -8,6 +8,24 @@ function $(e) {
     return (typeof e==="string" ? document.getElementById(e) : e);
 }
 
+microAjax("/serve/ssidlist", function(result) {
+    var entries = result.split("\n");
+    if (!entries)
+        return;
+    
+    var ssidlist = $('ssidlist');        
+    entries.forEach(function(entry) {
+        if (entry != "")
+        {
+            var option = document.createElement('option');
+            // Set the value using the item in the JSON array.
+            option.value = entry;
+            // Add the <option> element to the <datalist>.
+            ssidlist.appendChild(option);
+        }        
+    });        
+})
+
 function changeTime(component, value)
 {
     var query="/serve/changeTime?component="+component+"&value="+value;
@@ -25,7 +43,7 @@ function prepareParameterUpdate()
     { 
         clearTimeout(timeOutVar);
     }
-    timeOutVar = setTimeout(callParameterUpdate, 250);                        
+    timeOutVar = setTimeout(callParameterUpdate, 100);                        
 }
 
 var lastColor;

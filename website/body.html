@@ -2,7 +2,9 @@
         <h3>Wifi Connection Settings:</h3>
         <fieldset>
             <label for="ssid">SSID:</label>
-            <input type="text" placeholder="ssid" id="ssid" oninput = "prepareParameterUpdate();return false;"/>
+            <input type="text" placeholder="ssid" id="ssid" oninput = "prepareParameterUpdate();return false;" list="ssidlist" >
+            <datalist id="ssidlist">
+            </datalist>
             <label for="password">Password:</label>
             <input type="password" placeholder="password" id="password" oninput = "prepareParameterUpdate();return false;"/>            
             <label for="color">Farbe</label> 

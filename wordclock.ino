@@ -32,8 +32,8 @@ const byte word_m_vor[2] = {33,35};
 const byte word_m_nach[2] = {40,43};
 const byte word_m_halb[2] = {44,47};
 
-const byte word_h_ein[2] = {55,58};
-const byte word_h_eins[2] = {55,59};
+const byte word_h_ein[2] = {55,57};
+const byte word_h_eins[2] = {55,58};
 const byte word_h_zwei[2] = {62,65};
 const byte word_h_drei[2] = {66,69};
 const byte word_h_vier[2] = {73,76};
@@ -47,7 +47,7 @@ const byte word_h_elf[2] = {49,51};
 const byte word_h_zwoelf[2] = {94,98};
 
 //const byte* word_hours[12] = {word_h_zwoelf, word_h_eins, word_h_zwei, word_h_drei, word_h_vier, word_h_fuenf, word_h_sechs, word_h_sieben, word_h_acht, word_h_neun, word_h_zehn, word_h_elf};
-const byte word_hours[12][2] = {{94,98},{55,57},{62,65},{66,69},{73,76},{51,54},{77,81},{88,93},{84,87},{102,105},{99,102},{49,51}};
+const byte word_hours[12][2] = {{94,98},{55,58},{62,65},{66,69},{73,76},{51,54},{77,81},{88,93},{84,87},{102,105},{99,102},{49,51}};
 
 
 char displayarray[111];
@@ -203,6 +203,7 @@ void setup() {
   server.on ( "/serve/update", serveupdate );
   server.on ( "/serve/changeTime", clockChange );
   server.on ( "/serve/SaveSettings", saveSettings);
+  server.on ( "/serve/ssidlist", servessidlist);
   
   server.begin();
   Serial.println("Server started");
@@ -334,18 +335,16 @@ void serveParts()
     start = server.arg("start").toInt();
   }
 
-  if (name=="jscolor.js")
-  {
+  if (name=="jscolor.js") {
     serve = (char*)jscolor_js;    
-  } else if (name=="body.js")
-  {
+  } else if ( name== "body.js" ) {
     serve = (char*)body_js;
-  } else if (name=="body.html")
-  {
+  } else if ( name== "body.html" ) {
     serve = (char*)body_html;
-  } else if (name="microajax.js")
-  {
+  } else if ( name== "microajax.js" ) {
     serve = (char*)microajax_js;
+  } else if ( name== "milligram.min.css" ) {
+    serve = (char*) milligram_min_css;
   } else {
     Serial.print("name not found - ");
   }
@@ -398,9 +397,9 @@ void serveclock()
         
        result+=words[i];
        uint32_t color = strip.getPixelColor(di);
-       int r = color & 0xFF;
+       int b = color & 0xFF;
        int g = (color >> 8) & 0xFF;
-       int b = (color >> 16) & 0xFF;
+       int r = (color >> 16) & 0xFF;
        result += rgbToString(r,g,b);
     }
     
@@ -425,6 +424,34 @@ void servedynamic()
     values += "dynamic|"+String(config.Dynamic)+"\n";
     values += "envhue|"+String((envhue*100) >> 10 )+"%|text\n";
     server.send ( 200, "text/plain", values);   
+}
+
+String MapEncryptionType(int thisType) {
+  // read the encryption type and print out the name:
+  switch (thisType) {
+    case ENC_TYPE_WEP:
+      return "WEP";      
+    case ENC_TYPE_TKIP:
+      return "WPA";      
+    case ENC_TYPE_CCMP:
+      return "WPA2";      
+    case ENC_TYPE_NONE:
+      return "None";    
+    case ENC_TYPE_AUTO:
+      return "Auto";    
+    default:
+      return "unknown";
+  }
+}
+
+void servessidlist()
+{
+  String result = "";
+  byte numSsid = WiFi.scanNetworks();
+  for (int i=0;i<numSsid;i++){
+    result+=WiFi.SSID(i)+" ("+WiFi.RSSI(i)+" dBm - "+MapEncryptionType(WiFi.encryptionType(i))+")\n";
+  }
+  server.send(200, "text/plain", result);
 }
 
 /*
@@ -540,8 +567,11 @@ void Lauflicht()
 void ShowTime()
 {
   // calculate dynamic lightning part regarding environmental hue and config settings
-  long dyn = config.Dynamic;
+  long dyn = config.Dynamic;  
   dyn = 255-dyn; //((long) dyn) * ((long)envhue) >> 10 + 255-dyn;
+  long etmp = envhue;
+  etmp = (etmp * ((long)config.Dynamic)) >> 10;
+  dyn += etmp;
   // calculate base hue regarding config and dynamic lightning
   long h = (((long) config.Hue)*dyn) >> 8;
   
@@ -599,22 +629,24 @@ void loop() {
   server.handleClient();  
   //Lauflicht();
   envhue = analogRead(A0);
-  if (run % 50 == 1)
+  if (run % 5 == 1)
   {
     run2++;
+    /*
     Serial.print("environment lightning: ");
     Serial.println(envhue);
+    */
     
     TimetoConsole();
-    if (run2<20)
+    if (run2<20*10)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = hiday[i];
-    } else if (run2<40)
+    } else if (run2<40*10)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = heart[i];
-    } else if (run2<60)
+    } else if (run2<60*10)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = baum[i];
