@@ -34,7 +34,7 @@ files.forEach(function(file) {
         }
         
         if (output.length > 1024+512) {
-            console.log("warning - file size to big! "+file+": "+((data.length)/(1024)).toFixed(1)+"K");
+            console.log("warning - file size to big! "+file+": "+((output.length)/(1024)).toFixed(1)+"K");
         }
         
         var output = 'const char '+varName+'[] PROGMEM = R"=====('+output+')=====";';

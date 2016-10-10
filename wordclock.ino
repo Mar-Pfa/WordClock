@@ -15,8 +15,9 @@
 #include "body.js.h";
 #include "body.html.h";
 
-const char* baum = "     G          g        G g G       ggg      G ggg G     ggggg    G ggggg G   ggggggg  G ggggggg G ggggggggg ";
-
+const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ";
+const char *hiday = "                        w           w ww        w           w           w           w                         "; 
+const char *heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     ";
 const char* words = "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR";
 //                   01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
 //                   00000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000
@@ -31,7 +32,8 @@ const byte word_m_vor[2] = {33,35};
 const byte word_m_nach[2] = {40,43};
 const byte word_m_halb[2] = {44,47};
 
-const byte word_h_eins[2] = {55,58};
+const byte word_h_ein[2] = {55,58};
+const byte word_h_eins[2] = {55,59};
 const byte word_h_zwei[2] = {62,65};
 const byte word_h_drei[2] = {66,69};
 const byte word_h_vier[2] = {73,76};
@@ -64,30 +66,9 @@ void updateDisplay(byte from, byte to)
   {
     displayarray[i]=words[i];
   }
-  /*
-  Serial.print("word ");
-  Serial.print(from);
-  Serial.print(" to ");
-  Serial.println(to);
-  */
 }
 
-/*
-void initClock()
-{
-  words[0,0] = word_m_fuenf; words[0,1] = word_m_nach;
-  words[1,0] = word_m_zehn; words[1,1] = word_m_nach;
-  words[2,0] = word_m_viertel; words[2,1] = word_m_nach;
-  words[3,0] = word_m_zwanzig; words[3,1] = word_m_nach;
-  words[4,0] = word_m_fuenf; words[4,1] = word_m_vor; words[5,1] = word_m_halb;
-}
-
-*/
-
-
-
-
-#define StripPin D6
+#define StripPin D5
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(110, StripPin, NEO_GRB + NEO_KHZ800);
 
 int ledPin = D0; // GPIO16
@@ -110,6 +91,11 @@ void setDefaultConfig()
     config.timezone = +1;
     config.daylight = true;
     config.DeviceName = "clock";  
+    config.Color_R = 255;
+    config.Color_G = 255;
+    config.Color_B = 255;
+    config.Hue = 255;
+    config.Dynamic = 128;
 }
 
 void initWifi()
@@ -245,6 +231,7 @@ void setup() {
 
     strip.begin();
     strip.show();   
+    digitalWrite(ledPin, HIGH);
 }
 
 void TimetoConsole()
@@ -273,10 +260,17 @@ void CalculateTime()
   if (hadd==12)
     hadd=0;
 
-  if (m<3)
+  if (m<3 || m>=58)
   {
-    updateDisplay(word_hours[h][0], word_hours[h][1]);
-    updateDisplay(word_uhr[0], word_uhr[1]);
+    if (h==1)
+    {
+      updateDisplay(word_h_ein[0], word_h_ein[1]);      
+    }
+    else
+    {
+      updateDisplay(word_hours[h][0], word_hours[h][1]);      
+    }
+    updateDisplay(word_uhr[0], word_uhr[1]);      
   } else if (m<8) {
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
@@ -323,9 +317,6 @@ void CalculateTime()
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else {
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-    updateDisplay(word_uhr[0], word_uhr[1]);
   }
 
   //updateDisplay(word_uhr[0], word_uhr[1]);
@@ -387,7 +378,7 @@ void serveParts()
   Serial.print(start);
   Serial.print(" length ");
   Serial.println(result.length());
-  Serial.println(result);
+  //Serial.println(result);
 }
 
 /*
@@ -398,11 +389,18 @@ void serveclock()
     String result = "";    
     for (int i = 0; i < strip.numPixels(); i++) 
     {
+        int di=i;
+        if ((i/11) % 2 == 1)
+        {
+          //reverse position
+          di = (i / 11)*11 + 10-i % 11;
+        }
+        
        result+=words[i];
-       uint32_t color = strip.getPixelColor(i);
+       uint32_t color = strip.getPixelColor(di);
        int r = color & 0xFF;
-       int g = (color > 8) & 0xFF;
-       int b = (color > 16) & 0xFF;
+       int g = (color >> 8) & 0xFF;
+       int b = (color >> 16) & 0xFF;
        result += rgbToString(r,g,b);
     }
     
@@ -410,6 +408,8 @@ void serveclock()
     server.send ( 200, "text/plain", result);   
 }
 
+
+long envhue;
 /*
  * return the dynamic values for the website
  */
@@ -423,6 +423,7 @@ void servedynamic()
     values += "_minute|" + String(minute()) + "|text\n";
     values += "hue|"+String(config.Hue)+"\n";
     values += "dynamic|"+String(config.Dynamic)+"\n";
+    values += "envhue|"+String((envhue*100) >> 10 )+"%|text\n";
     server.send ( 200, "text/plain", values);   
 }
 
@@ -538,7 +539,32 @@ void Lauflicht()
  */
 void ShowTime()
 {
-  uint32_t coHigh = strip.Color(4,4,4);
+  // calculate dynamic lightning part regarding environmental hue and config settings
+  long dyn = config.Dynamic;
+  dyn = 255-dyn; //((long) dyn) * ((long)envhue) >> 10 + 255-dyn;
+  // calculate base hue regarding config and dynamic lightning
+  long h = (((long) config.Hue)*dyn) >> 8;
+  
+    Serial.print("base hue: ");
+    Serial.println(h);
+    Serial.println(dyn);
+    Serial.println(config.Hue);
+    Serial.println(config.Dynamic);
+  
+  
+  int cr = ((int) config.Color_R * (int) h) >> 8;
+  int cg = ((int) config.Color_G * (int) h) >> 8;
+  int cb = ((int) config.Color_B * (int) h) >> 8;
+  uint32_t coHigh = strip.Color(cr,cg,cb);
+
+  uint32_t coRed = strip.Color(h,0,0);
+  uint32_t coGreen = strip.Color(0,h,0);
+  uint32_t coYellow = strip.Color(h, h, 0);
+
+  char redChar  = 'r';
+  char greenChar = 'g';
+  char yellowChar = 'y';
+     
   for (int i=0;i<110;i++)
   {
       int di=i;
@@ -549,7 +575,15 @@ void ShowTime()
       }
       uint32_t co = 0;
       if (displayarray[di]!=32){
-        co = coHigh;
+        if (displayarray[di] == redChar) {
+            co = coRed;          
+        } else if (displayarray[di] == greenChar) {
+            co = coGreen;         
+        } else if (displayarray[di] == yellowChar) {
+            co = coYellow;
+        } else {
+            co = coHigh; 
+        }
       }
       strip.setPixelColor(i, co);
   }
@@ -558,16 +592,36 @@ void ShowTime()
 }
 
 
+int run2 = 0;
 
 void loop() {
   run++;   
   server.handleClient();  
   //Lauflicht();
+  envhue = analogRead(A0);
   if (run % 50 == 1)
   {
+    run2++;
+    Serial.print("environment lightning: ");
+    Serial.println(envhue);
+    
     TimetoConsole();
-    CalculateTime();  
-    ShowTime();
+    if (run2<20)
+    {
+      for (int i=0;i<110;i++)
+        displayarray[i] = hiday[i];
+    } else if (run2<40)
+    {
+      for (int i=0;i<110;i++)
+        displayarray[i] = heart[i];
+    } else if (run2<60)
+    {
+      for (int i=0;i<110;i++)
+        displayarray[i] = baum[i];
+    } else {  
+      CalculateTime();  
+    }
+    ShowTime();    
   }  
   delay(20); 
 }

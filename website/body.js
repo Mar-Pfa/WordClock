@@ -41,7 +41,7 @@ function checkColor()
 function callParameterUpdate()
 {
     var query = "/serve/update"+
-        "?color="+encodeURIComponent($("color").value)+
+        "?color="+encodeURIComponent("#"+$("color").value)+
         "&hue="+$("hue").value+
         "&dynamic="+$("dynamic").value+
         "&ssid="+$("ssid").value+
@@ -138,4 +138,4 @@ function RefreshUpdate(next)
     });                                                
 }
 
-window.setInterval(checkColor,5000);
+window.setInterval(checkColor,2000);
