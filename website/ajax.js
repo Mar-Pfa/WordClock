@@ -18,19 +18,51 @@ var ajax = {
         cb = callback
         a = action after loading (for automatically executing an action)
     */
-    load: function(name, a, cb)
-    {                
+    loaddirect: function(name, cb)
+    {
         var r = new XMLHttpRequest();
         r.op = {
-            _url:"load?name="+name,
-            _data:"",
-            _cb:cb,
-            _s:0,
-            _a:a
+            _url:name,
+            _cb:cb
         };
-        r.onreadystatechange = ajax.RC;
-		r.open("GET",r.op._url, true);
-		r.send(null);		
+        r.onreadystatechange = ajax.RCDirect;
+        r.open("GET",r.op._url, true);
+        r.send(null);
+    },
+    RCDirect: function()
+    {
+        if (this.readyState == 4)
+        {		
+            if (this.op._cb)
+            {
+                this.op._cb(this.responseText);
+            }
+        }
+    },
+    load: function(name, a, cb)
+    {               
+        if (name.endsWith(".js"))
+        {
+            var s = document.createElement( 'script' );
+            s.setAttribute( 'src', name );
+            s.onload=cb;
+            document.body.appendChild( s );		
+
+        }
+        else
+        {
+            var r = new XMLHttpRequest();
+            r.op = {
+                _url:"load?name="+name,
+                _data:"",
+                _cb:cb,
+                _s:0,
+                _a:a
+            };
+            r.onreadystatechange = ajax.RC;
+            r.open("GET",r.op._url, true);
+            r.send(null);
+        }
     },
     RC : function ()
     {

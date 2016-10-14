@@ -10,12 +10,10 @@ const char index_html[] PROGMEM = R"=====(<!DOCTYPE html>
         <script type="text/javascript">
             window.onload = function () {
                 ajax.load("milligram.min.css", {Type:"insert"}, function() {
-                ajax.load("microajax.js", {Type:"insert"}, function(data) {
                 ajax.load("body.html",  {Type:"replace", Id:"body", Tag:"innerHTML"},function(data) {                
                 ajax.load("body.js", {Type:"insert"}, function () {
                     //
                 });                    
-                });
                 });
                 });
             }            

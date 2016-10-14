@@ -100,20 +100,25 @@ void setDefaultConfig()
 
 void initWifi()
 {
+  WiFi.hostname("clock");
+  wifi_station_set_hostname("clock");
+
   const char*ssid = config.ssid.c_str();
   const char*password = config.password.c_str();
 
   if (config.ap)
   {
+    Serial.print("starting Accesspoint with network: ");
+    Serial.print(ssid);
+    Serial.print(" - ");
+    Serial.println(password);
     WiFi.mode(WIFI_AP);    
     WiFi.softAP(ssid, password);
     return;
   }
-  else
-  {
-    WiFi.mode(WIFI_STA);
-  }
-  
+
+
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   //WiFi.start();
 
@@ -170,7 +175,7 @@ void setup() {
 
   if (!ReadConfig())
 	{
-    setDefaultConfig();
+      setDefaultConfig();
 	}  
  
   pinMode(ledPin, OUTPUT);
@@ -179,9 +184,7 @@ void setup() {
   // Connect to WiFi network
   Serial.println();
   Serial.println();
-  Serial.print("Connecting to ");
- 
-  wifi_station_set_hostname("clock");
+  Serial.print("Connecting to ");  
 
   initWifi();
    
@@ -449,7 +452,7 @@ void servessidlist()
   String result = "";
   byte numSsid = WiFi.scanNetworks();
   for (int i=0;i<numSsid;i++){
-    result+=WiFi.SSID(i)+" ("+WiFi.RSSI(i)+" dBm - "+MapEncryptionType(WiFi.encryptionType(i))+")\n";
+    result+=WiFi.SSID(i)+"|"+WiFi.SSID(i)+" ("+WiFi.RSSI(i)+" dBm - "+MapEncryptionType(WiFi.encryptionType(i))+")\n";
   }
   server.send(200, "text/plain", result);
 }
@@ -487,6 +490,7 @@ void saveSettings()
 {
   WriteConfig();
   server.send( 200, "text/plain", "ok");
+  ESP.restart();
 }
 /*
  * 
@@ -496,28 +500,26 @@ void serveupdate()
     Serial.println("update!");
     if (server.args() > 0 )  // Are there any POST/GET Fields ? 
     {
-       for ( uint8_t i = 0; i < server.args(); i++ ) {  // Iterate through the fields
-          if (server.argName(i) == "color")
+        if (server.hasArg("hue")) config.Hue = server.arg("hue").toInt();    
+        if (server.hasArg("dynamic")) config.Dynamic = server.arg("dynamic").toInt();          
+        if (server.hasArg("apmode")) config.ap = (server.arg("apmode")=="true");
+        if (server.hasArg("ssid") && config.ap) config.ssid = server.arg("ssid");
+        if (server.hasArg("ssidlist") && !config.ap) config.ssid=server.arg("ssidlist");
+        if (server.hasArg("password")) config.password=server.arg("password");
+        if (server.hasArg("color")) {
+          String co = urldecode(server.arg("color"));
+          if (co.length()==7 && co[0]=='#')
           {
-              String co = urldecode(server.arg(i));
-              if (co.length()==7 && co[0]=='#')
-              {
-                 config.Color_R = h2int(co[1]) *16 +h2int(co[2]);
-                 config.Color_G = h2int(co[3]) *16 +h2int(co[4]);                 
-                 config.Color_B = h2int(co[5]) *16 +h2int(co[6]);                 
-              }
-          } else if (server.argName(i) == "hue") {
-             config.Hue = server.arg(i).toInt();
-          } else if (server.argName(i) == "dynamic") {
-             config.Dynamic = server.arg(i).toInt();
-          } else if (server.argName(i) == "ssid") {
-             config.ssid = server.arg(i);
-          } else if (server.argName(i) == "password") {
-             config.password = server.arg(i);
-          }
-          Serial.println(server.argName(i));
-          Serial.println(server.arg(i));
+             config.Color_R = h2int(co[1]) *16 +h2int(co[2]);
+             config.Color_G = h2int(co[3]) *16 +h2int(co[4]);                 
+             config.Color_B = h2int(co[5]) *16 +h2int(co[6]);                 
+          }        
         }
+        Serial.print("hue:"); Serial.println(config.Hue);
+        Serial.print("dynamic:"); Serial.println(config.Dynamic);
+        Serial.print("apMode:"); Serial.println(config.ap);
+        Serial.print("ssid:"); Serial.println(config.ssid);
+        Serial.print("password:"); Serial.println(config.password);
     }
     server.send( 200, "text/plain", "ok");
 }
@@ -636,9 +638,10 @@ void loop() {
     Serial.print("environment lightning: ");
     Serial.println(envhue);
     */
+
+    if (run2 % 5 == 1) TimetoConsole();
     
-    TimetoConsole();
-    if (run2<20*10)
+    if (run2<20*2)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = hiday[i];
@@ -655,6 +658,6 @@ void loop() {
     }
     ShowTime();    
   }  
-  delay(20); 
+  delay(100); 
 }
 

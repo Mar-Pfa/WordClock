@@ -6,7 +6,7 @@ String.prototype.replaceAll = function(search, replacement) {
     return target.replace(new RegExp(search, 'g'), replacement);
 };
 
-var files = ["index.html" , "microajax.js" , "milligram.min.css" , "jscolor.js", "ajax.js","body.js","body.html"];
+var files = ["index.html" , "milligram.min.css" , "jscolor.js", "ajax.js","body.js","body.html"];
 
 console.log("add to c-code: ");
 files.forEach(function(file) {

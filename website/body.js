@@ -8,32 +8,39 @@ function $(e) {
     return (typeof e==="string" ? document.getElementById(e) : e);
 }
 
-microAjax("/serve/ssidlist", function(result) {
-    var entries = result.split("\n");
-    if (!entries)
-        return;
-    
-    var ssidlist = $('ssidlist');        
-    entries.forEach(function(entry) {
-        if (entry != "")
-        {
-            var option = document.createElement('option');
-            // Set the value using the item in the JSON array.
-            option.value = entry;
-            // Add the <option> element to the <datalist>.
-            ssidlist.appendChild(option);
-        }        
-    });        
-})
+function changeApMode()
+{
+    if ($("apmode").checked)
+    {
+        $("ssid").style.display="";
+        $("ssidlist").style.display="none"
+    } 
+    else
+    {
+        $("ssid").style.display="none";
+        $("ssidlist").style.display=""
+    }
+}
 
 function changeTime(component, value)
 {
     var query="/serve/changeTime?component="+component+"&value="+value;
-    microAjax(query, function(result) {
+    ajax.loaddirect(query, function(result) {
         RefreshUpdate(function () {
-            updateDynamic();
+            prepareDynamicUpdate();
         });
     });                    
+}
+
+var dynamicTimeOutVar;
+function prepareDynamicUpdate()
+{
+    if (typeof(OutVar) !== 'undefined')
+    {
+        clearTimeout(dynamicTimeOutVar);
+    }
+    dynamicTimeOutVar = setTimeout(updateDynamic, 100);
+
 }
 
 var timeOutVar;
@@ -49,7 +56,11 @@ function prepareParameterUpdate()
 var lastColor;
 function checkColor()
 {
-    if (typeof(lastColor) === 'undefined' || $('color').value != lastColor)
+    if (typeof(lastColor) === 'undefined')
+    {
+        lastColor = $('color').value;
+    } 
+    if ($('color').value != lastColor)
     {
         lastColor = $('color').value;
         prepareParameterUpdate();
@@ -63,19 +74,21 @@ function callParameterUpdate()
         "&hue="+$("hue").value+
         "&dynamic="+$("dynamic").value+
         "&ssid="+$("ssid").value+
-        "&password="+$("password").value;
-    microAjax(query, function(result) {});
+        "&password="+$("password").value+
+        "&apmode="+$("apmode").checked+
+        "&ssidlist="+$("ssidlist").value;
+    ajax.loaddirect(query);
 }
 
 function SaveSettings()
 {
     var query = "/serve/SaveSettings";
-    microAjax(query, function() {});
+    ajax.loaddirect(query);
 }
 
 function RefreshClock(next)
 {
-    microAjax('/serve/clock', function(result) {
+    ajax.loaddirect('/serve/clock', function(result) {
         $('clock').innerHTML = "";
         var po = 0;
         console.log("check clock:");
@@ -110,8 +123,7 @@ function RefreshClock(next)
 
 function updateDynamic(next)
 {
-    microAjax('/serve/dynamic', function(result) {
-
+    ajax.loaddirect('/serve/dynamic', function(result) {
         var entries = result.split("\n");
         if (entries)
         {
@@ -156,4 +168,34 @@ function RefreshUpdate(next)
     });                                                
 }
 
+window.setTimeout(function() {
+    ajax.loaddirect("/serve/ssidlist", function(result) {
+        var entries = result.split("\n");
+        if (!entries)
+            return;
+        
+        var ssidlist = $('ssidlist');        
+        entries.forEach(function(entry) {
+            if (entry != "")
+            {
+                var parts = entry.split("|");
+                if (parts.length == 2)
+                {
+                    var option = document.createElement('option');
+
+                    // Set the value using the item in the JSON array.
+                    option.value = parts[0];
+                    option.innerText = parts[1];
+                    // Add the <option> element to the <datalist>.
+                    ssidlist.appendChild(option);
+                }
+                else{
+                    console.log("cannot parse string "+entry);
+                }
+            }        
+        });        
+    });
+}, 10);
+
 window.setInterval(checkColor,2000);
+

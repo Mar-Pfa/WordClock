@@ -22,6 +22,7 @@ THE SOFTWARE.
 
 function microAjax(url, callbackFunction)
 {
+	console.log("request: "+url+" - "+callbackFunction);	
 	this.bindFunction = function (caller, object) {
 		return function() {
 			return caller.apply(object, [object]);

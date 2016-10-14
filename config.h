@@ -84,12 +84,12 @@ void WriteConfig()
 
 boolean ReadConfig()
 {
-	Serial.println("Reading Configuration");
-	if (EEPROM.read(0) != 'C' || EEPROM.read(1) != 'L'  || EEPROM.read(2) != 'O' || EEPROM.read(3) != 'C' || EEPROM.read(4) != 'K' )
-	{
-		Serial.println("Configuration NOT FOUND!!!!");
-		return false;
-	}
+  	Serial.println("Reading Configuration");
+  	if (EEPROM.read(0) != 'C' || EEPROM.read(1) != 'L'  || EEPROM.read(2) != 'O' || EEPROM.read(3) != 'C' || EEPROM.read(4) != 'K' )
+  	{
+  		Serial.println("Configuration NOT FOUND!!!!");
+  		return false;
+  	}
     Serial.println("Configurarion Found!");
     config.dhcp = 	EEPROM.read(16);
 
