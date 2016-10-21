@@ -641,15 +641,15 @@ void loop() {
 
     if (run2 % 5 == 1) TimetoConsole();
     
-    if (run2<20*2)
+    if (run2<10)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = hiday[i];
-    } else if (run2<40*10)
+    } else if (run2<20)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = heart[i];
-    } else if (run2<60*10)
+    } else if (run2<30)
     {
       for (int i=0;i<110;i++)
         displayarray[i] = baum[i];
