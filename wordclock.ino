@@ -15,6 +15,12 @@
 #include "body.js.h";
 #include "body.html.h";
 
+void servedynamic();
+void serveupdate();
+void clockChange();
+void saveSettings();
+void servessidlist();
+
 const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ";
 const char *hiday = "                        w           w ww        w           w           w           w                         "; 
 const char *heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     ";
@@ -98,6 +104,28 @@ void setDefaultConfig()
     config.Dynamic = 128;
 }
 
+/*
+ * small helper function to test the complete strip
+ */
+int run = 0;
+void Lauflicht()
+{
+    for (int i = 0; i < strip.numPixels(); i++) 
+    {
+      uint32_t co = 0;
+      if (run % strip.numPixels() == i)
+      {
+        co = strip.Color((255-run % 255)/2,(255- run % 255)/2,(run % 255)/2);
+      }
+      if ((run+1) % strip.numPixels() == i || (run-1) % strip.numPixels() == i)
+      {
+        co = strip.Color((255-run % 255)/8,(255- run % 255)/8,(run % 255)/8);
+      }                 
+      strip.setPixelColor(i, co);
+    }
+    strip.show();  
+}
+
 void initWifi()
 {
   WiFi.hostname("clock");
@@ -164,6 +192,88 @@ void sendfile(const prog_char str[])
   //strcpy_P(buffer, (char*)pgm_read_word(&(string_table[i])));
   server.send(200,"text/html", buffer);
   */
+}
+
+void serveParts()
+{
+  char *serve = 0;
+  String name = server.arg("name");
+  int start = 0;
+  if (server.hasArg("start"))
+  {
+    start = server.arg("start").toInt();
+  }
+
+  if (name=="jscolor.js") {
+    serve = (char*)jscolor_js;    
+  } else if ( name== "body.js" ) {
+    serve = (char*)body_js;
+  } else if ( name== "body.html" ) {
+    serve = (char*)body_html;
+  } else if ( name== "microajax.js" ) {
+    serve = (char*)microajax_js;
+  } else if ( name== "milligram.min.css" ) {
+    serve = (char*) milligram_min_css;
+  } else {
+    Serial.print("name not found - ");
+  }
+  
+  if (serve == 0)
+  {
+    server.send(404, "text/plain", "file not found");
+    return;
+  }
+
+  int len=0;
+  len = strlen_P(serve);
+
+  String result = "";
+  result.reserve(4001);
+  char myChar;
+  int pos = start;
+  
+  for (int i=0;i<4000 && pos<len; i++)
+  {    
+    myChar = pgm_read_byte (serve+pos);      
+    result += myChar;
+    pos++;
+  }
+  server.send(200, "text/plain", result);
+
+  Serial.print("load ");
+  Serial.print(name);
+  Serial.print(" from ");
+  Serial.print(start);
+  Serial.print(" length ");
+  Serial.println(result.length());
+  //Serial.println(result);
+}
+
+/*
+ * return the current clock display for website display
+ */
+void serveclock()
+{ 
+    String result = "";    
+    for (int i = 0; i < strip.numPixels(); i++) 
+    {
+        int di=i;
+        if ((i/11) % 2 == 1)
+        {
+          //reverse position
+          di = (i / 11)*11 + 10-i % 11;
+        }
+        
+       result+=words[i];
+       uint32_t color = strip.getPixelColor(di);
+       int b = color & 0xFF;
+       int g = (color >> 8) & 0xFF;
+       int r = (color >> 16) & 0xFF;
+       result += rgbToString(r,g,b);
+    }
+    
+    //CalculateTime();
+    server.send ( 200, "text/plain", result);   
 }
 
 
@@ -328,87 +438,6 @@ void CalculateTime()
   Serial.println(displayarray);
 }
 
-void serveParts()
-{
-  char *serve = 0;
-  String name = server.arg("name");
-  int start = 0;
-  if (server.hasArg("start"))
-  {
-    start = server.arg("start").toInt();
-  }
-
-  if (name=="jscolor.js") {
-    serve = (char*)jscolor_js;    
-  } else if ( name== "body.js" ) {
-    serve = (char*)body_js;
-  } else if ( name== "body.html" ) {
-    serve = (char*)body_html;
-  } else if ( name== "microajax.js" ) {
-    serve = (char*)microajax_js;
-  } else if ( name== "milligram.min.css" ) {
-    serve = (char*) milligram_min_css;
-  } else {
-    Serial.print("name not found - ");
-  }
-  
-  if (serve == 0)
-  {
-    server.send(404, "text/plain", "file not found");
-    return;
-  }
-
-  int len=0;
-  len = strlen_P(serve);
-
-  String result = "";
-  result.reserve(4001);
-  char myChar;
-  int pos = start;
-  
-  for (int i=0;i<4000 && pos<len; i++)
-  {    
-    myChar = pgm_read_byte (serve+pos);      
-    result += myChar;
-    pos++;
-  }
-  server.send(200, "text/plain", result);
-
-  Serial.print("load ");
-  Serial.print(name);
-  Serial.print(" from ");
-  Serial.print(start);
-  Serial.print(" length ");
-  Serial.println(result.length());
-  //Serial.println(result);
-}
-
-/*
- * return the current clock display for website display
- */
-void serveclock()
-{ 
-    String result = "";    
-    for (int i = 0; i < strip.numPixels(); i++) 
-    {
-        int di=i;
-        if ((i/11) % 2 == 1)
-        {
-          //reverse position
-          di = (i / 11)*11 + 10-i % 11;
-        }
-        
-       result+=words[i];
-       uint32_t color = strip.getPixelColor(di);
-       int b = color & 0xFF;
-       int g = (color >> 8) & 0xFF;
-       int r = (color >> 16) & 0xFF;
-       result += rgbToString(r,g,b);
-    }
-    
-    //CalculateTime();
-    server.send ( 200, "text/plain", result);   
-}
 
 
 long envhue;
@@ -541,27 +570,7 @@ void TimeUpdate()
   setTime(t);
 }
 
-/*
- * small helper function to test the complete strip
- */
-int run = 0;
-void Lauflicht()
-{
-    for (int i = 0; i < strip.numPixels(); i++) 
-    {
-      uint32_t co = 0;
-      if (run % strip.numPixels() == i)
-      {
-        co = strip.Color((255-run % 255)/2,(255- run % 255)/2,(run % 255)/2);
-      }
-      if ((run+1) % strip.numPixels() == i || (run-1) % strip.numPixels() == i)
-      {
-        co = strip.Color((255-run % 255)/8,(255- run % 255)/8,(run % 255)/8);
-      }                 
-      strip.setPixelColor(i, co);
-    }
-    strip.show();  
-}
+
 
 /*
  * Display the DisplayArray to the Matrix LED-Display
