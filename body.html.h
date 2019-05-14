@@ -1,6 +1,8 @@
 const char body_html[] PROGMEM = R"=====(    <form>
         <h3>Wifi Connection Settings:</h3>
         <fieldset>
+            <label for="devicename">Device Name:</label>
+            <input type="text" id="devicename" oninput = "prepareParameterUpdate();return false;" />
 
             <label for="apcheckbox">Access Point Mode:</label>
             <input type="checkbox" id="apmode" value="1" onchange="changeApMode();return false;" />

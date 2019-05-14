@@ -15,7 +15,11 @@
 #include "body.js.h";
 #include "body.html.h";
 
+#define hd 
 #define displaySize 114
+
+char *letters = "abcdefghijklmnopqrstuvwxyz0123456789";
+
 const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ....";
 const char *hiday = "                        W           W WW        W           W           W           W                             "; 
 const char *heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     rrrr";
@@ -72,39 +76,54 @@ void updateDisplay(byte from, byte to)
 }
 
 #define StripPin D5
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize, StripPin, NEO_GRB + NEO_KHZ800);
+#if defined hd
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize*2, StripPin, NEO_GRB + NEO_KHZ800);
+#else 
+  Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize, StripPin, NEO_GRB + NEO_KHZ800);
+#endif
 
-int ledPin = D0; // GPIO16
+#define ledPin D1 
 
 //WiFiServer server(80); //Initialize the server on Port 80
 ESP8266WebServer server(80);
 
+
 void setDefaultConfig()
 {
     // DEFAULT CONFIG
-    config.ssid = "clock";
-    config.password = "clock";
+    config.ssid = "workclock";
+    config.password = "00000000";
     config.dhcp = true;
     config.ap = true;
-    config.IP[0] = 192;config.IP[1] = 168;config.IP[2] = 1;config.IP[3] = 100;
+    config.IP[0] = 192;config.IP[1] = 168;config.IP[2] = 2;config.IP[3] = 252;
     config.Netmask[0] = 255;config.Netmask[1] = 255;config.Netmask[2] = 255;config.Netmask[3] = 0;
-    config.Gateway[0] = 192;config.Gateway[1] = 168;config.Gateway[2] = 1;config.Gateway[3] = 1;
+    config.Gateway[0] = 192;config.Gateway[1] = 168;config.Gateway[2] = 2;config.Gateway[3] = 1;
     config.ntpServerName = "0.de.pool.ntp.org";
     config.Update_Time_Via_NTP_Every =  0;
     config.timezone = +1;
     config.daylight = true;
-    config.DeviceName = "clock";  
+    config.DeviceName = "clock_";  
+    for (int i=0;i<5;i++)
+    {
+        byte randomValue = random(0, 37);
+        char letter = randomValue + 'a';
+        config.DeviceName=config.DeviceName+letter;
+    }
+    
     config.Color_R = 255;
     config.Color_G = 255;
     config.Color_B = 255;
     config.Hue = 255;
-    config.Dynamic = 128;
+    config.Dynamic = 0;
 }
 
 void initWifi()
 {
-  WiFi.hostname("clock");
-  wifi_station_set_hostname("clock");
+  WiFi.hostname(config.DeviceName);
+
+  char str_array[config.DeviceName.length()];
+  config.DeviceName.toCharArray(str_array, config.DeviceName.length());
+  wifi_station_set_hostname(str_array);
 
   const char*ssid = config.ssid.c_str();
   const char*password = config.password.c_str();
@@ -121,23 +140,27 @@ void initWifi()
   }
 
 
+  Serial.print(ssid);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   //WiFi.start();
 
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    if (counter>10)
+    delay(100);
+    if (counter>100)
     {
+      Serial.print("cannot connect, switching to access point mode ");
       config.ap=true;
-      config.ssid="clock";
-      config.password="clock";
-      initWifi();
+      config.ssid="wordclock";
+      config.password="00000000";
+      WiFi.mode(WIFI_AP);    
+      WiFi.softAP(ssid, password);
       break;
     }
     Lauflicht();
     Serial.print(".");
+    counter++;
   }
   Serial.println("");
   Serial.println("WiFi connected");  
@@ -176,10 +199,20 @@ void setup() {
   delay(10);
 	Serial.println("Starting ES8266");
 
+  initDisplay();
+  
   if (!ReadConfig())
 	{
       setDefaultConfig();
 	}  
+ 
+ if (config.ssid == "")
+ {
+    config.ap = true;
+    config.ssid = "wordclock";
+    config.password = "00000000";
+ }
+ 
  
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
@@ -234,7 +267,7 @@ void setup() {
         }
     });
     NTP.begin("pool.ntp.org", 1, true);
-    NTP.setInterval(1800);
+    NTP.setInterval(60);
 
     strip.begin();
     strip.show();   
@@ -396,22 +429,45 @@ void serveParts()
 void serveclock()
 { 
     String result = "";    
-    for (int i = 0; i < strip.numPixels(); i++) 
-    {
-        int di=i;
-        if ((i/11) % 2 == 1)
-        {
-          //reverse position
-          di = (i / 11)*11 + 10-i % 11;
-        }
-        
-       result+=words[i];
-       uint32_t color = strip.getPixelColor(di);
-       int b = color & 0xFF;
-       int g = (color >> 8) & 0xFF;
-       int r = (color >> 16) & 0xFF;
-       result += rgbToString(r,g,b);
-    }
+
+    #if defined hd
+      for (int i = 0; i < strip.numPixels(); i++) 
+      {
+          if (i%2==0) 
+            continue;
+            
+          int di=i;
+          if ((i/22) % 2 == 1)
+          {
+            //reverse position
+            di = (i / 22)*22 + 21-i % 22;
+          }
+          
+         result+=words[i/2];
+         uint32_t color = strip.getPixelColor(di);
+         int b = color & 0xFF;
+         int g = (color >> 8) & 0xFF;
+         int r = (color >> 16) & 0xFF;
+         result += rgbToString(r,g,b);
+      }
+    #else
+      for (int i = 0; i < strip.numPixels(); i++) 
+      {
+          int di=i;
+          if ((i/11) % 2 == 1)
+          {
+            //reverse position
+            di = (i / 11)*11 + 10-i % 11;
+          }
+          
+         result+=words[i];
+         uint32_t color = strip.getPixelColor(di);
+         int b = color & 0xFF;
+         int g = (color >> 8) & 0xFF;
+         int r = (color >> 16) & 0xFF;
+         result += rgbToString(r,g,b);
+      }
+    #endif
     
     //CalculateTime();
     server.send ( 200, "text/plain", result);   
@@ -433,6 +489,7 @@ void servedynamic()
     values += "hue|"+String(config.Hue)+"\n";
     values += "dynamic|"+String(config.Dynamic)+"\n";
     values += "envhue|"+String((envhue*100) >> 10 )+"%|text\n";
+    values += "devicename|"+String(config.DeviceName)+ "\n";
     server.send ( 200, "text/plain", values);   
 }
 
@@ -497,6 +554,7 @@ void saveSettings()
 {
   WriteConfig();
   server.send( 200, "text/plain", "ok");
+  delay(1000);
   ESP.restart();
 }
 /*
@@ -512,6 +570,7 @@ void serveupdate()
         if (server.hasArg("apmode")) config.ap = (server.arg("apmode")=="true");
         if (server.hasArg("ssid") && config.ap) config.ssid = server.arg("ssid");
         if (server.hasArg("ssidlist") && !config.ap) config.ssid=server.arg("ssidlist");
+        if (server.hasArg("devicename")) config.DeviceName=server.arg("devicename");
         if (server.hasArg("password")) config.password=server.arg("password");
         if (server.hasArg("color")) {
           String co = urldecode(server.arg("color"));
@@ -625,7 +684,12 @@ void ShowTime()
             co = coHigh; 
         }
       }
-      strip.setPixelColor(i, co);
+      #if defined hd
+         strip.setPixelColor(i*2, co);
+         strip.setPixelColor(i*2+1, co);
+      #else
+         strip.setPixelColor(i, co);       
+      #endif
   }
   displayarray[displaySize]=0;
   strip.show();  
@@ -638,8 +702,10 @@ void loop() {
   run++;   
   server.handleClient();  
   //
-  envhue = analogRead(A0);
 
+  //Lauflicht();    
+ 
+  
   if (run<200)
   {
     Lauflicht();    
@@ -647,10 +713,6 @@ void loop() {
   else if (run % 40 == 0)
   {
     run2++;
-    /*
-    Serial.print("environment lightning: ");
-    Serial.println(envhue);
-    */
 
     if (run2 % 16 == 1) TimetoConsole();
 
@@ -670,7 +732,7 @@ void loop() {
       CalculateTime();  
     }
     ShowTime();
-  }    
-  delay(20); 
+  }
+      
+  delay(10); 
 }
-

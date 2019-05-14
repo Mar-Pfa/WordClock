@@ -71,6 +71,7 @@ function callParameterUpdate()
 {
     var query = "/serve/update"+
         "?color="+encodeURIComponent("#"+$("color").value)+
+        "&devicename="+$("devicename").value+
         "&hue="+$("hue").value+
         "&dynamic="+$("dynamic").value+
         "&ssid="+$("ssid").value+
