@@ -21,10 +21,11 @@ void clockChange();
 void saveSettings();
 void servessidlist();
 
-const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ";
-const char *hiday = "                        w           w ww        w           w           w           w                         "; 
-const char *heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     ";
-const char* words = "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR";
+#define displaySize 114
+const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ....";
+const char *hiday = "                        W           W WW        W           W           W           W                             "; 
+const char *heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     rrrr";
+const char* words = "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";
 //                   01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
 //                   00000000001111111111222222222233333333334444444444555555555566666666667777777777888888888899999999990000000000
 const byte word_es[2] = {0,1};
@@ -56,14 +57,16 @@ const byte word_h_zwoelf[2] = {94,98};
 const byte word_hours[12][2] = {{94,98},{55,58},{62,65},{66,69},{73,76},{51,54},{77,81},{88,93},{84,87},{102,105},{99,102},{49,51}};
 
 
-char displayarray[111];
+char displayarray[displaySize+1];
 void initDisplay()
 {
-  for (int i=0;i<110;i++)
+  // set every entry to "space"
+  for (int i=0;i<displaySize;i++)
   {
     displayarray[i]=32;
   }
-  displayarray[110]=0;
+  // and the last one to zero as string terminator
+  displayarray[displaySize]=0;
 }
 
 void updateDisplay(byte from, byte to)
@@ -75,7 +78,7 @@ void updateDisplay(byte from, byte to)
 }
 
 #define StripPin D5
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(110, StripPin, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize, StripPin, NEO_GRB + NEO_KHZ800);
 
 int ledPin = D0; // GPIO16
 
@@ -374,7 +377,7 @@ void CalculateTime()
   if (hadd==12)
     hadd=0;
 
-  if (m<3 || m>=58)
+  if (m<5)
   {
     if (h==1)
     {
@@ -385,57 +388,61 @@ void CalculateTime()
       updateDisplay(word_hours[h][0], word_hours[h][1]);      
     }
     updateDisplay(word_uhr[0], word_uhr[1]);      
-  } else if (m<8) {
+  } else if (m<10) {
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_hours[h][0], word_hours[h][1]);
-  } else if (m<13) {    
+  } else if (m<15) {    
     updateDisplay(word_m_zehn[0], word_m_zehn[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_hours[h][0], word_hours[h][1]);
-  } else if (m<18) {    
+  } else if (m<20) {    
     updateDisplay(word_m_viertel[0], word_m_viertel[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_hours[h][0], word_hours[h][1]);
-  } else if (m<23) {    
+  } else if (m<25) {    
     updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_hours[h][0], word_hours[h][1]);
-  } else if (m<28) {    
+  } else if (m<30) {    
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m<33) {    
+  } else if (m<35) {    
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m<38) {    
+  } else if (m<40) {    
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m<43) {    
+  } else if (m<45) {    
     updateDisplay(word_m_zehn[0], word_m_zehn[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m<48) {    
+  } else if (m<50) {    
     updateDisplay(word_m_viertel[0], word_m_viertel[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m<53) {    
+  } else if (m<55) {    
     updateDisplay(word_m_zehn[0], word_m_zehn[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m<58) {    
+  } else {    
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
   }
 
-  //updateDisplay(word_uhr[0], word_uhr[1]);
-
-  Serial.println(displayarray);
+  int l;
+  for (l=0;l<m % 5; l ++)
+  //for (l=0;l<4; l ++)
+  {
+    displayarray[l + 110] = '.';
+  }  
+  //Serial.println(displayarray);
 }
 
 
@@ -585,6 +592,7 @@ void ShowTime()
   dyn += etmp;
   // calculate base hue regarding config and dynamic lightning
   long h = (((long) config.Hue)*dyn) >> 8;
+  long h2 = h >> 1;
   
     Serial.print("base hue: ");
     Serial.println(h);
@@ -601,12 +609,12 @@ void ShowTime()
   uint32_t coRed = strip.Color(h,0,0);
   uint32_t coGreen = strip.Color(0,h,0);
   uint32_t coYellow = strip.Color(h, h, 0);
-
+  
   char redChar  = 'r';
   char greenChar = 'g';
   char yellowChar = 'y';
      
-  for (int i=0;i<110;i++)
+  for (int i=0;i<displaySize;i++)
   {
       int di=i;
       if ((i/11) % 2 == 1)
@@ -628,7 +636,7 @@ void ShowTime()
       }
       strip.setPixelColor(i, co);
   }
-  displayarray[110]=0;
+  displayarray[displaySize]=0;
   strip.show();  
 }
 
@@ -638,9 +646,14 @@ int run2 = 0;
 void loop() {
   run++;   
   server.handleClient();  
-  //Lauflicht();
+  //
   envhue = analogRead(A0);
-  if (run % 5 == 1)
+
+  if (run<200)
+  {
+    Lauflicht();    
+  }
+  else if (run % 40 == 0)
   {
     run2++;
     /*
@@ -648,25 +661,25 @@ void loop() {
     Serial.println(envhue);
     */
 
-    if (run2 % 5 == 1) TimetoConsole();
-    
+    if (run2 % 16 == 1) TimetoConsole();
+
     if (run2<10)
     {
-      for (int i=0;i<110;i++)
+      for (int i=0;i<displaySize;i++)
         displayarray[i] = hiday[i];
     } else if (run2<20)
     {
-      for (int i=0;i<110;i++)
+      for (int i=0;i<displaySize;i++)
         displayarray[i] = heart[i];
     } else if (run2<30)
     {
-      for (int i=0;i<110;i++)
+      for (int i=0;i<displaySize;i++)
         displayarray[i] = baum[i];
     } else {  
       CalculateTime();  
     }
-    ShowTime();    
-  }  
-  delay(100); 
+    ShowTime();
+  }    
+  delay(20); 
 }
 
