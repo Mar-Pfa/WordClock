@@ -15,10 +15,14 @@
 #include "body.js.h";
 #include "body.html.h";
 
+#define startscreen "Linda"
 #define hd 
 #define displaySize 114
 
 char *letters = "abcdefghijklmnopqrstuvwxyz0123456789";
+
+
+
 
 const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ....";
 const char *hiday = "                        W           W WW        W           W           W           W                             "; 
@@ -716,19 +720,26 @@ void loop() {
 
     if (run2 % 16 == 1) TimetoConsole();
 
-    if (run2<10)
+
+    if (startscreen == "Dayana")
     {
-      for (int i=0;i<displaySize;i++)
-        displayarray[i] = hiday[i];
-    } else if (run2<20)
-    {
-      for (int i=0;i<displaySize;i++)
-        displayarray[i] = heart[i];
-    } else if (run2<30)
-    {
-      for (int i=0;i<displaySize;i++)
-        displayarray[i] = baum[i];
-    } else {  
+      if (run2<10)
+      {
+        for (int i=0;i<displaySize;i++)
+          displayarray[i] = hiday[i];
+      } else if (run2<20)
+      {
+        for (int i=0;i<displaySize;i++)
+          displayarray[i] = heart[i];
+      } else if (run2<30)
+      {
+        for (int i=0;i<displaySize;i++)
+          displayarray[i] = baum[i];
+      } else {  
+        CalculateTime();  
+      }
+    }
+    else {      
       CalculateTime();  
     }
     ShowTime();
