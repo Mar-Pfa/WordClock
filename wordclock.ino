@@ -514,7 +514,8 @@ String MapEncryptionType(int thisType) {
 bool allOn = false;
 void serveAllOn()
 {
-  allOn = !allOn;
+   allOn = !allOn;
+   server.send( 200, "text/plain", "ok");
 }
 
 void servessidlist()
@@ -538,11 +539,13 @@ void clockChange()
       {
          if (server.argName(0) == "component" && server.argName(1) == "value")
          {
-            int v = 1;
+            int v = server.arg(1).toInt();
+/*            int v = 1;
             if (server.arg(1)=="-1")
             {
               v=-1;          
             }
+            */
             if (server.arg(0)=="hour")
             {
                 adjustTime(v*60*60);
