@@ -16,13 +16,10 @@
 #include "body.html.h";
 
 #define startscreen "Linda"
-#define hd 
+//#define hd 
 #define displaySize 114
 
 char *letters = "abcdefghijklmnopqrstuvwxyz0123456789";
-
-
-
 
 const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ....";
 const char *hiday = "                        W           W WW        W           W           W           W                             "; 
@@ -143,16 +140,14 @@ void initWifi()
     return;
   }
 
-
   Serial.print(ssid);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
-  //WiFi.start();
 
   int counter = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(100);
-    if (counter>100)
+    if (counter>200)
     {
       Serial.print("cannot connect, switching to access point mode ");
       config.ap=true;
@@ -247,6 +242,7 @@ void setup() {
   server.on ( "/serve/changeTime", clockChange );
   server.on ( "/serve/SaveSettings", saveSettings);
   server.on ( "/serve/ssidlist", servessidlist);
+  server.on ( "/serve/allOn", serveAllOn);
   
   server.begin();
   Serial.println("Server started");
@@ -515,6 +511,12 @@ String MapEncryptionType(int thisType) {
   }
 }
 
+bool allOn = false;
+void serveAllOn()
+{
+  allOn = !allOn;
+}
+
 void servessidlist()
 {
   String result = "";
@@ -633,6 +635,47 @@ void Lauflicht()
     strip.show();  
 }
 
+void ShowAllOn()
+{
+   // calculate dynamic lightning part regarding environmental hue and config settings
+  long dyn = config.Dynamic;  
+  dyn = 255-dyn; //((long) dyn) * ((long)envhue) >> 10 + 255-dyn;
+  long etmp = envhue;
+  etmp = (etmp * ((long)config.Dynamic)) >> 10;
+  dyn += etmp;
+  // calculate base hue regarding config and dynamic lightning
+  long h = (((long) config.Hue)*dyn) >> 8;
+  long h2 = h >> 1;
+  
+  Serial.print("base hue: ");
+  Serial.println(h);
+  Serial.println(dyn);
+  Serial.println(config.Hue);
+  Serial.println(config.Dynamic);
+  
+  
+  int cr = ((int) config.Color_R * (int) h) >> 8;
+  int cg = ((int) config.Color_G * (int) h) >> 8;
+  int cb = ((int) config.Color_B * (int) h) >> 8;
+  uint32_t coHigh = strip.Color(cr,cg,cb);
+
+  uint32_t coRed = strip.Color(h,0,0);
+  uint32_t coGreen = strip.Color(0,h,0);
+  uint32_t coYellow = strip.Color(h, h, 0);
+
+  for (int i=0;i<displaySize;i++)
+  {
+      #if defined hd
+         strip.setPixelColor(i*2, coHigh);
+         strip.setPixelColor(i*2+1, coHigh);
+      #else
+         strip.setPixelColor(i, coHigh);       
+      #endif
+  }
+  displayarray[displaySize]=0;
+  strip.show();
+}
+
 /*
  * Display the DisplayArray to the Matrix LED-Display
  */
@@ -742,7 +785,11 @@ void loop() {
     else {      
       CalculateTime();  
     }
-    ShowTime();
+    if (allOn) {
+      ShowAllOn();
+    } else {
+      ShowTime();      
+    }
   }
       
   delay(10); 

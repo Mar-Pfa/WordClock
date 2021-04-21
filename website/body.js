@@ -121,6 +121,12 @@ function RefreshClock(next)
     });            
 }
 
+function allOn()
+{
+    ajax.loaddirect('serve/allon', function(result) {
+        console.log("all lights on");
+    });
+}
 
 function updateDynamic(next)
 {
