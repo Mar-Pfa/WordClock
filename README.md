@@ -14,9 +14,13 @@ Configuration could be done with a mobile phone.
 
 1. Power On the Clock
 2. Connect to the WiFi "workclock"  and provide the password "00000000" (8 x 0)
+   
 ![alt QR Code to connect to the clock WiFi](clockwifiqr.png "workclock wifi")
+
 3. Open the clock config-screen using URL http://192.168.4.1
+
 ![alt clock config website](clockWebsite.png "clock config website")
+
 4. change settings you like
    ![alt clock admin website](clockAdminPage.png "clock admin website")
    1. select a WiFi-Network in the SSID-List, enter the password end press "Update Settings" below
