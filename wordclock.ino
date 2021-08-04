@@ -15,6 +15,7 @@
 #include "body.js.h";
 #include "body.html.h";
 
+//#define startscreen "Dayana"
 #define startscreen "Linda"
 //#define hd 
 #define displaySize 114
@@ -54,6 +55,9 @@ const byte word_h_zwoelf[2] = {94,98};
 
 //const byte* word_hours[12] = {word_h_zwoelf, word_h_eins, word_h_zwei, word_h_drei, word_h_vier, word_h_fuenf, word_h_sechs, word_h_sieben, word_h_acht, word_h_neun, word_h_zehn, word_h_elf};
 const byte word_hours[12][2] = {{94,98},{55,58},{62,65},{66,69},{73,76},{51,54},{77,81},{88,93},{84,87},{102,105},{99,102},{49,51}};
+
+// lauflicht variable
+int run = 0;
 
 
 char displayarray[displaySize+1];
@@ -118,6 +122,34 @@ void setDefaultConfig()
     config.Dynamic = 0;
 }
 
+bool tryStartWifi(const char*ssid, const char*password)
+{
+  WiFi.disconnect();
+  Serial.print(ssid);
+  Serial.println(password);
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+
+  int counter = 0;
+  // reset global "Lauflicht" variable
+  run = 0;
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(150);
+    if (counter>100)
+    {
+      Serial.println("cannot connect");
+      WiFi.mode(WIFI_AP);
+      delay(150);
+      return false;
+    }
+    Lauflicht();
+    run++;
+    Serial.print(".");
+    counter++;
+  }
+  return true;
+}
+
 void initWifi()
 {
   WiFi.hostname(config.DeviceName);
@@ -140,33 +172,29 @@ void initWifi()
     return;
   }
 
-  Serial.print(ssid);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-
-  int counter = 0;
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(100);
-    if (counter>200)
+  for (int i=0;i<5;i++)
+  {
+    Serial.print("start Wifi try ");
+    Serial.println(i+1);
+    if (tryStartWifi(ssid, password))
     {
-      Serial.print("cannot connect, switching to access point mode ");
-      config.ap=true;
-      config.ssid="wordclock";
-      config.password="00000000";
-      WiFi.mode(WIFI_AP);    
-      WiFi.softAP(ssid, password);
-      break;
+      Serial.println("");
+      Serial.println("WiFi connected");        
+      return;    
     }
-    Lauflicht();
-    Serial.print(".");
-    counter++;
   }
-  Serial.println("");
-  Serial.println("WiFi connected");  
+
+  Serial.print("cannot connect, switching to access point mode ");
+  config.ap=true;
+  config.ssid="wordclock";
+  config.password="00000000";
+  WiFi.mode(WIFI_AP);    
+  WiFi.softAP(ssid, password);
+ 
 }
 
 #define webblocksize 3000
-void sendfile(const prog_char str[])
+void sendfile(PGM_P str[])
 {
   String result = "";
   if(!str) return;
@@ -221,6 +249,10 @@ void setup() {
   Serial.println();
   Serial.print("Connecting to ");  
 
+  strip.begin();
+  strip.show();   
+  digitalWrite(ledPin, HIGH);
+
   initWifi();
    
   // Start the server
@@ -242,7 +274,7 @@ void setup() {
   server.on ( "/serve/changeTime", clockChange );
   server.on ( "/serve/SaveSettings", saveSettings);
   server.on ( "/serve/ssidlist", servessidlist);
-  server.on ( "/serve/allOn", serveAllOn);
+  server.on ( "/serve/allon", serveAllOn);
   
   server.begin();
   Serial.println("Server started");
@@ -266,12 +298,11 @@ void setup() {
             Serial.println(NTP.getTimeDateString(NTP.getLastNTPSync()));
         }
     });
+    if (!NTP.setInterval(5,60)){
+      Serial.println("Interval Setting not successfull");
+    }
+    NTP.stop();
     NTP.begin("pool.ntp.org", 1, true);
-    NTP.setInterval(60);
-
-    strip.begin();
-    strip.show();   
-    digitalWrite(ledPin, HIGH);
 }
 
 void TimetoConsole()
@@ -599,9 +630,11 @@ void serveupdate()
     server.send( 200, "text/plain", "ok");
 }
 
+
 /*
  * helper function to update the time
  */
+ /*
 int _timeUpdateCounter = 0;
 void TimeUpdate()
 {
@@ -615,12 +648,27 @@ void TimeUpdate()
   time_t t = NTP.getTime();
   setTime(t);
 }
-
+*/
 /*
  * small helper function to test the complete strip
  */
-int run = 0;
+
 void Lauflicht()
+{
+  int run2 = run / 10;
+    for (int i = 0; i < strip.numPixels(); i++) 
+    {
+      uint32_t co = 0;
+      if (run2 % strip.numPixels() >= i-2 && run2 % strip.numPixels() <= i+2)
+      {
+        co = strip.Color(64,64,64);
+      }
+      strip.setPixelColor(i, co);
+    }
+    strip.show();  
+}
+ 
+void Lauflicht2()
 {
     for (int i = 0; i < strip.numPixels(); i++) 
     {
@@ -699,8 +747,7 @@ void ShowTime()
     Serial.println(dyn);
     Serial.println(config.Hue);
     Serial.println(config.Dynamic);
-  
-  
+    
   int cr = ((int) config.Color_R * (int) h) >> 8;
   int cg = ((int) config.Color_G * (int) h) >> 8;
   int cb = ((int) config.Color_B * (int) h) >> 8;
@@ -753,8 +800,8 @@ void loop() {
   server.handleClient();  
   //
 
-  //Lauflicht();    
- 
+//  Lauflicht();    
+// return;
   
   if (run<200)
   {

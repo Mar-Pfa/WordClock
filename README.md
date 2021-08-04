@@ -1,4 +1,4 @@
-# WordClock
+es# WordClock
 Arduino Sketch with software for a wordclock controlled by a esp8266 chip and powered by a ws2812 led stripe
 
 # clock.ino

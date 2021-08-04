@@ -59,7 +59,7 @@ bool NTPClient::setTimeZone(int timeZone)
 
 int NTPClient::getTimeZone()
 {
-	return sntp_get_timezone();
+	return 1; //return sntp_get_timezone();
 }
 
 /*void NTPClient::setLastNTPSync(time_t moment) {
