@@ -71,6 +71,7 @@ function callParameterUpdate()
 {
     var query = "/serve/update"+
         "?color="+encodeURIComponent("#"+$("color").value)+
+        "&devicename="+$("devicename").value+
         "&hue="+$("hue").value+
         "&dynamic="+$("dynamic").value+
         "&ssid="+$("ssid").value+
@@ -120,6 +121,12 @@ function RefreshClock(next)
     });            
 }
 
+function allOn()
+{
+    ajax.loaddirect('serve/allon', function(result) {
+        console.log("all lights on");
+    });
+}
 
 function updateDynamic(next)
 {

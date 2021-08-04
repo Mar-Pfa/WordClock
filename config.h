@@ -123,5 +123,14 @@ boolean ReadConfig()
     config.ntpServerName = ReadStringFromEEPROM(128);
             
     config.DeviceName= ReadStringFromEEPROM(306);
+
+    Serial.print("ssid: ");
+    Serial.println(config.ssid);
+    
+    Serial.print("password: ");
+    Serial.println(config.password);
+
+
+    
     return true;		
 }
