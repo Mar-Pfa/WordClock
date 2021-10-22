@@ -1,3 +1,19 @@
+/*
+ * Serial No. 1 
+ * Dayana  
+ * HD
+ * Serial No. 2
+ * Linda Nbg
+ * HD
+ * Serial No. 3 
+ * SD
+ * Linda Siegsdorf
+ * Serial No. 4
+ * Doris
+ * HD
+ * Wemos D1 mini
+ */
+
 #include "Time.h"
 #include "NtpClientLib.h"
 #include <ESP8266WiFi.h>
@@ -16,8 +32,9 @@
 #include "body.html.h";
 
 //#define startscreen "Dayana"
+
 #define startscreen "Linda"
-//#define hd 
+#define hd 
 #define displaySize 114
 
 char *letters = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -87,7 +104,7 @@ void updateDisplay(byte from, byte to)
   Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize, StripPin, NEO_GRB + NEO_KHZ800);
 #endif
 
-#define ledPin D1 
+#define ledPin D4 
 
 //WiFiServer server(80); //Initialize the server on Port 80
 ESP8266WebServer server(80);
@@ -110,7 +127,7 @@ void setDefaultConfig()
     config.DeviceName = "clock_";  
     for (int i=0;i<5;i++)
     {
-        byte randomValue = random(0, 37);
+        byte randomValue = random(0, 26);
         char letter = randomValue + 'a';
         config.DeviceName=config.DeviceName+letter;
     }
@@ -150,6 +167,9 @@ bool tryStartWifi(const char*ssid, const char*password)
   return true;
 }
 
+
+bool online = false;
+
 void initWifi()
 {
   WiFi.hostname(config.DeviceName);
@@ -180,6 +200,9 @@ void initWifi()
     {
       Serial.println("");
       Serial.println("WiFi connected");        
+      Serial.println("registering device...");
+      Register(WiFi.localIP().toString(), config.DeviceName);
+      online = true;
       return;    
     }
   }
@@ -796,6 +819,15 @@ void ShowTime()
 int run2 = 0;
 
 void loop() {
+
+  if ( (run < 10 || (run < 100 && run % 10 == 0) || (run < 1000 && run % 100 == 0)) && online && year()<2000)
+  {
+    setSyncInterval(0);
+    now();
+    setSyncInterval(60);
+  }
+
+  
   run++;   
   server.handleClient();  
   //
