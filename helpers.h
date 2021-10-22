@@ -216,8 +216,36 @@ String urldecode(String input) // (based on https://code.google.com/p/avr-netino
   
 }
 
+void CallUrl(const char * host, String url)
+{
+  WiFiClient client;
+  Serial.println(url);
+  if (!client.connect(host, 80)) { Serial.println("connection failed"); return; }
+  //client.print(String("GET ") + url + " HTTP/1.1\r\n" + "Host: "+host + "\n\r" + "Connection: close\r\n\r\n");
+  client.print(String("GET ") + url + " HTTP/1.1\r\n" +
+  "Host: " + host + "\r\n" +
+  "Connection: close\r\n\r\n");
+  
+  unsigned long timeout = millis();
+  while (client.available() == 0){
+    if (millis() - timeout > 5000)
+    {
+      Serial.println(">>> Client Timeout!");
+      client.stop();
+      return;
+    }
+    delay(0); // give the system some time to process other stuff
+  }
+  while (client.available()) { 
+    String line = client.readStringUntil('\r'); 
+    Serial.println(line);
+  }
+  Serial.println("closing connection");
+}
 
-
+void Register(String localIp, String deviceName)
+{
+}
 
  
 #endif
