@@ -40,7 +40,7 @@ using namespace placeholders;
 #define DEFAULT_NTP_PORT 123 // Default local udp port. Select a different one if neccesary (usually not needed)
 #define DEFAULT_NTP_INTERVAL 300 // Default sync interval 30 minutes 
 #define DEFAULT_NTP_SHORTINTERVAL 5 // Sync interval when sync has not been achieved. 15 seconds
-#define DEFAULT_NTP_TIMEZONE 0 // Select your local time offset. 0 if UTC time has to be used
+#define DEFAULT_NTP_TIMEZONE 1 // Select your local time offset. 0 if UTC time has to be used
 
 
 #ifdef ARDUINO_ARCH_ESP8266
@@ -314,7 +314,7 @@ protected:
 
 #if defined ARDUINO_ARCH_AVR || defined ARDUINO_ARCH_SAMD || defined ARDUINO_ARCH_ARC32
 
-	int _timeZone = 0;
+	int _timeZone = 1;
 	char* _ntpServerName;
 
 public:
@@ -344,4 +344,3 @@ private:
 extern NTPClient NTP;
 
 #endif // _NtpClientLib_h
-

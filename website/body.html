@@ -8,13 +8,17 @@
             <input type="checkbox" id="apmode" value="1" onchange="changeApMode();return false;" />
             <label for="ssid">SSID:</label>
             <input type="text"  style="display:none" placeholder="ssid" id="ssid" oninput = "prepareParameterUpdate();return false;">
-
+            
             <select id="ssidlist" onchange="prepareParameterUpdate();return false;" >
                 <option value="">please select...</option>
             </select>
 
             <label for="password">Password:</label>
-            <input placeholder="password" id="password" oninput = "prepareParameterUpdate();return false;"/>            
+            <input placeholder="password" id="password" type="password" oninput = "prepareParameterUpdate();return false;"/>            
+
+            <label for="hdCheckBox">HD Mode:</label>
+            <input type="checkbox" id="hdmode" value="1" onchange="prepareParameterUpdate();return false;" />
+
             <label for="color">Farbe</label> 
 	        <!--<input class="color" style="width:100%" class="jscolor" value="" id="color" onchange="prepareParameterUpdate();return false;" oninput = "prepareParameterUpdate();return false;" /><br />-->
             <input class="jscolor" id="color"  style="width:100%" value="ff0000" onchange="prepareParameterUpdate();return false;" oninput = "prepareParameterUpdate();return false;"/>

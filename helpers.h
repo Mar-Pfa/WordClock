@@ -1,5 +1,20 @@
+#include <ESP8266WiFi.h>
+#include <ESP8266HTTPClient.h>
+#include "ESP8266httpUpdate.h"
+#include "definitions.h"
 #ifndef HELPERS_H
 #define HELPERS_H
+
+
+#if defined (__AVR_ATmega328P__)
+    char BOARD[]      = {"UNO"};
+#elif defined (__AVR_ATmega2560__)
+    char BOARD[]      = {"Mega"};
+#elif defined (__AVR_ATmega168__)
+    char BOARD[]      = {"Mini 168"};
+#else
+    #warning "device type not defined"
+#endif
 
 
 
@@ -217,11 +232,10 @@ String urldecode(String input) // (based on https://code.google.com/p/avr-netino
 }
 
 void CallUrl(const char * host, String url)
-{
+{ 
   WiFiClient client;
   Serial.println(url);
   if (!client.connect(host, 80)) { Serial.println("connection failed"); return; }
-  //client.print(String("GET ") + url + " HTTP/1.1\r\n" + "Host: "+host + "\n\r" + "Connection: close\r\n\r\n");
   client.print(String("GET ") + url + " HTTP/1.1\r\n" +
   "Host: " + host + "\r\n" +
   "Connection: close\r\n\r\n");
@@ -243,9 +257,61 @@ void CallUrl(const char * host, String url)
   Serial.println("closing connection");
 }
 
-void Register(String localIp, String deviceName)
+
+
+int Check(String fwVersionURL)
 {
+  HTTPClient httpClient;
+  httpClient.begin( fwVersionURL );
+  int httpCode = httpClient.GET();
+  if( httpCode == 200 ) {
+    String newFWVersion = httpClient.getString();
+    Serial.print( "Available firmware version: " );
+    Serial.println( newFWVersion );
+    int newVersion = newFWVersion.toInt();
+    return newVersion;
+  }
+  return -1;
 }
 
+
+String getMAC()
+{
+  uint8_t mac[6];
+  char result[14];
+  snprintf( result, sizeof( result ), "%02x%02x%02x%02x%02x%02x", mac[ 0 ], mac[ 1 ], mac[ 2 ], mac[ 3 ], mac[ 4 ], mac[ 5 ] );
+  return String( result );
+}
+
+// check for Over The Air Firmware Update
+void AutoOta(String localIp, String deviceName, String mac, int fwVersion)
+{
+  Serial.println("checking ota...");
+  String url = "";
+  String fwHost = "www.djprime.de";
+  url = url + "http://www.djprime.de/IoT/clock.php?key=OtA&s_ip=";url += localIp;
+  url += "&devicename=";  url += deviceName;
+  url += "&mac="; url+=mac;
+  url += "&fwVersion="; url+=fwVersion;
+  String fwURL = "/IoT/clock";
+  int newVersion = Check(url);
+  if( newVersion > FW_VERSION ) {
+    Serial.println( "Preparing to update." );
+    String fwImageURL = fwURL;
+    fwImageURL.concat( newVersion);
+    fwImageURL.concat( ".bin" );
+    WiFiClient client;
+    t_httpUpdate_return ret = ESPhttpUpdate.update( client, fwHost, fwImageURL );
+    switch(ret) {
+    case HTTP_UPDATE_FAILED:
+      Serial.printf("HTTP_UPDATE_FAILED Error (%d): %s",  ESPhttpUpdate.getLastError(), ESPhttpUpdate.getLastErrorString().c_str());
+      break;
+
+    case HTTP_UPDATE_NO_UPDATES:
+      Serial.println("HTTP_UPDATE_NO_UPDATES");
+      break;
+    }
+  }
+}
  
 #endif

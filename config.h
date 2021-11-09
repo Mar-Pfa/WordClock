@@ -18,7 +18,8 @@ struct strConfig {
     byte Dynamic; // dynamic rate from 0 to 255
     byte Hue;     // hue
     byte daylight; // daylight saving
-}   config;
+    boolean hdmode;    // hd mode = 2 LED's per Pixel
+}   config __attribute__((packed));;
 
 
 void ConfigureWifi()
@@ -40,6 +41,7 @@ void WriteConfig()
 	EEPROM.write(2,'O');
 	EEPROM.write(3,'C');
 	EEPROM.write(4,'K');
+  EEPROM.write(15, config.hdmode? (byte)1:(byte)0);
 
 	EEPROM.write(16,config.dhcp);
 	EEPROM.write(17,config.daylight);
@@ -90,7 +92,8 @@ boolean ReadConfig()
   		Serial.println("Configuration NOT FOUND!!!!");
   		return false;
   	}
-    Serial.println("Configurarion Found!");
+    Serial.println("Configuration Found!");
+    config.hdmode = (EEPROM.read(15)>0);
     config.dhcp = 	EEPROM.read(16);
 
     config.daylight = EEPROM.read(17);

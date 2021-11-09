@@ -71,6 +71,7 @@ function callParameterUpdate()
 {
     var query = "/serve/update"+
         "?color="+encodeURIComponent("#"+$("color").value)+
+        "&hdmode="+$("hdmode").checked+
         "&devicename="+$("devicename").value+
         "&hue="+$("hue").value+
         "&dynamic="+$("dynamic").value+
@@ -175,11 +176,14 @@ function RefreshUpdate(next)
     });                                                
 }
 
-window.setTimeout(function() {
+function ssidload()
+{
     ajax.loaddirect("/serve/ssidlist", function(result) {
         var entries = result.split("\n");
-        if (!entries)
+        if (!entries || entries.length==0) {
+            window.setTimeout(ssidload, 10);
             return;
+        }
         
         var ssidlist = $('ssidlist');        
         entries.forEach(function(entry) {
@@ -202,7 +206,9 @@ window.setTimeout(function() {
             }        
         });        
     });
-}, 10);
+}
+
+window.setTimeout(ssidload, 10);
 
 window.setInterval(checkColor,2000);
 

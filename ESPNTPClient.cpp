@@ -8,6 +8,8 @@
 #include <ESP8266WiFi.h>
 
 #define DBG_PORT Serial
+#define DEBUG_NTPCLIENT
+
 
 #ifdef DEBUG_NTPCLIENT
 #define DEBUGLOG(...) DBG_PORT.printf(__VA_ARGS__)
@@ -59,7 +61,7 @@ bool NTPClient::setTimeZone(int timeZone)
 
 int NTPClient::getTimeZone()
 {
-	return 1; //return sntp_get_timezone();
+  return 1; // 	return sntp_get_timezone();
 }
 
 /*void NTPClient::setLastNTPSync(time_t moment) {
