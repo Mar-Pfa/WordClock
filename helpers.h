@@ -1,22 +1,9 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266HTTPClient.h>
-#include "ESP8266httpUpdate.h"
+//#include <ESP8266HTTPClient.h>
+//#include "ESP8266httpUpdate.h"
 #include "definitions.h"
 #ifndef HELPERS_H
 #define HELPERS_H
-
-
-#if defined (__AVR_ATmega328P__)
-    char BOARD[]      = {"UNO"};
-#elif defined (__AVR_ATmega2560__)
-    char BOARD[]      = {"Mega"};
-#elif defined (__AVR_ATmega168__)
-    char BOARD[]      = {"Mini 168"};
-#else
-    #warning "device type not defined"
-#endif
-
-
 
 static const uint8_t monthDays[]={31,28,31,30,31,30,31,31,30,31,30,31}; 
 #define LEAP_YEAR(Y) ( ((1970+Y)>0) && !((1970+Y)%4) && ( ((1970+Y)%100) || !((1970+Y)%400) ) )
@@ -261,6 +248,7 @@ void CallUrl(const char * host, String url)
 
 int Check(String fwVersionURL)
 {
+  /*
   HTTPClient httpClient;
   httpClient.begin( fwVersionURL );
   int httpCode = httpClient.GET();
@@ -271,6 +259,7 @@ int Check(String fwVersionURL)
     int newVersion = newFWVersion.toInt();
     return newVersion;
   }
+  */
   return -1;
 }
 
@@ -301,6 +290,7 @@ void AutoOta(String localIp, String deviceName, String mac, int fwVersion)
     fwImageURL.concat( newVersion);
     fwImageURL.concat( ".bin" );
     WiFiClient client;
+    /*
     t_httpUpdate_return ret = ESPhttpUpdate.update( client, fwHost, fwImageURL );
     switch(ret) {
     case HTTP_UPDATE_FAILED:
@@ -311,7 +301,8 @@ void AutoOta(String localIp, String deviceName, String mac, int fwVersion)
       Serial.println("HTTP_UPDATE_NO_UPDATES");
       break;
     }
+    */
   }
 }
  
-#endif
+// #endif

@@ -1,4 +1,11 @@
 /*
+ * needed libraries
+ * NTPClient
+ * AsyncElegantOta
+ * 
+ * EspAsyncTcp - install manually from https://github.com/me-no-dev/ESPAsyncTCP
+ * ESPAsyncWebServer - install manually from https://github.com/me-no-dev/ESPAsyncWebServer
+ * 
    Serial No. 1
    Dayana
    HD
@@ -17,18 +24,12 @@
 const int FW_VERSION = 1001;
 
 #include <ESP8266WiFi.h>
-
 #include <NTPClient.h>
-#include "Time.h"
-#include "Timezone.h" 
-#include <coredecls.h>                  // settimeofday_cb()
-//#include "NtpClientLib.h"
-//#include <ESP8266WebServer.h>
-#include "ESPAsyncWebServer.h"
-#include "ESPAsyncTCP.h"
-#include "AsyncElegantOTA.h"
+#include <AsyncElegantOTA.h>
 #include <EEPROM.h>
 #include <Adafruit_NeoPixel.h>
+#include <ESPAsyncTCP.h>
+#include <ESPAsyncWebServer.h>
 #include "config.h"
 #include "helpers.h"
 
@@ -44,6 +45,16 @@ const int FW_VERSION = 1001;
 
 #define startscreen "Linda"
 #define displaySize 114
+
+void serveParts(AsyncWebServerRequest *request);
+void sendfile(AsyncWebServerRequest *request, PGM_P str[]);
+void servessidlist(AsyncWebServerRequest *request);
+void serveAllOn(AsyncWebServerRequest *request);
+void clockChange(AsyncWebServerRequest *request);
+void saveSettings(AsyncWebServerRequest *request);
+void serveupdate(AsyncWebServerRequest *request);
+void servedynamic(AsyncWebServerRequest *request);
+void serveclock(AsyncWebServerRequest *request);
 
 char *letters = "abcdefghijklmnopqrstuvwxyz0123456789";
 
@@ -86,6 +97,7 @@ int run = 0;
 
 
 char displayarray[displaySize + 1];
+
 void initDisplay()
 {
   // set every entry to "space"
@@ -310,31 +322,30 @@ void setup() {
   initWifi();
 
   // Start the server
-  server.on ( "/", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", index_html );
-  } );
-
-  server.on ( "/index.html", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", index_html );
-  } );
-  server.on ( "/microajax.js", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", microajax_js );
-  } );
-  server.on ( "/milligram.min.css", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", milligram_min_css );
-  } );
-  server.on ( "/jscolor.js", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", jscolor_js );
-  } );
-  server.on ( "/ajax.js", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", ajax_js );
-  } );
-  server.on ( "/body.js", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", body_js );
-  } );
-  server.on ( "/body.html", [](AsyncWebServerRequest * request) {
-    request->send ( 200, "text/html", body_html );
-  } );
+  server.on( "/", []() {
+    server.send( 200, "text/html", index_html );
+  });
+  server.on( "/index.html", []() {
+    server.send( 200, "text/html", index_html );
+  });
+  server.on( "/microajax.js",[]() {
+    server.send(200, "text/html", microajax_js );
+  });
+  server.on("/milligram.min.css",[]() {
+    server.send(200, "text/html", milligram_min_css );
+  });
+  server.on("/jscolor.js",[]() {
+    server.send( 200, "text/html", jscolor_js );
+  });
+  server.on("/ajax.js",[]() {
+    server.send(200,"text/html", ajax_js );
+  });
+  server.on("/body.js",[]() {
+    server.send( 200, "text/html", body_js );
+  });
+  server.on("/body.html", [][]() {
+    server.send(200,"text/html", body_html );
+  });
 
   server.on ( "/load", serveParts );
 
@@ -493,13 +504,6 @@ void CalculateTime()
   //Serial.println(displayarray);
 }
 
-WiFiUDP ntpUDP;
-int GTMOffset = 1;
-NTPClient timeClient(ntpUDP, "europe.pool.ntp.org", GTMOffset*60*60, 60*60*1000);
-TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     // Central European Summer Time
-TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       // Central European Standard Time
-Timezone CE(CEST, CET);
- 
 void serveParts(AsyncWebServerRequest *request)
 {
   char *serve = 0;
@@ -972,57 +976,6 @@ void loop() {
     } else {
       ShowTime();
     }
-
-      timeval tv;
-      gettimeofday(&tv, nullptr);
-      time_t now;
-      now = time(nullptr);
-      
-      // EPOCH+tz+dst
-      Serial.print(" gtod:");
-      Serial.print((uint32_t)tv.tv_sec);
-      Serial.print("/");
-      Serial.print((uint32_t)tv.tv_usec);
-      Serial.print("us");
-      
-      // human readable
-      Serial.print(" ctime:(UTC+");
-      Serial.print((uint32_t)(TZ * 60 + DST_MN));
-      Serial.print("mn)");
-      Serial.print(ctime(&now));
-
-      // alternative
-      Serial.print(hour(now));
-      Serial.print(":");
-      Serial.print(minute(now));
-      Serial.print(":");
-      Serial.print(second(now));
-      Serial.println();
-
-      if (timeClient.update()){
-         Serial.print ( "Adjust local clock" );
-         unsigned long epoch = timeClient.getEpochTime();
-         // HERE I'M UPDATE LOCAL CLOCK
-         setTime(epoch);
-         
-        // alternative
-        Serial.print(hour(now));
-        Serial.print(":");
-        Serial.print(minute(now));
-        Serial.print(":");
-        Serial.print(second(now));
-        Serial.println();
-      }else{
-         Serial.print ( "NTP Update not WORK!!" );
-      }
-
-      time_t local = CE.toLocal(now);
-      Serial.print(hour(local));
-      Serial.print(":");
-      Serial.print(minute(local));
-      Serial.print(":");
-      Serial.print(second(local));
-      Serial.println();
   }
 
   delay(10);
