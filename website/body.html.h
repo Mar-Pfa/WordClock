@@ -1,4 +1,4 @@
-    <form>
+const char body_html[] PROGMEM = R"=====(    <form>
         <h3>Wifi Connection Settings:</h3>
         <fieldset>
             <label for="devicename">Device Name:</label>
@@ -40,10 +40,7 @@
                 </td></tr>
             </table>  
             <label for="hue">Helligkeit:</label>
-            <input type="range" id="hue" min="0" max="255" oninput="prepareParameterUpdate();return false;">
-            <p style="font-style:italic;white-space:nowrap">Umgebungshelligkeit: <span id="envhue">0</span></p>
-            <label for="dynamic">Lichtdynamik:</label>
-            <input type="range" id="dynamic" min="0" max="255" oninput="prepareParameterUpdate();return false;">
+            <input type="range" id="hue" min="0" max="255" oninput="prepareParameterUpdate();return false;">            
             <br />
             <input class="button-primary" type="submit" value="Update Settings" onclick="SaveSettings();return false;" />
             <br />
@@ -51,3 +48,4 @@
         </fieldset>
     </form>
     <pre id="clock"></pre>
+)=====";

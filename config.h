@@ -1,5 +1,9 @@
 #include "helpers.h"
 
+#ifndef CONFIG_H
+#define CONFIG_H
+
+
 struct strConfig {
 	  String ssid;      // ssid name of then network
 	  String password;  // password for connection
@@ -14,13 +18,11 @@ struct strConfig {
 	  String DeviceName; // devicename for the clock in the network
 	  byte Color_R; // red color component for the clock
 	  byte Color_G; // green color component for the clock
-	  byte Color_B; // blue color component for the clock
-    byte Dynamic; // dynamic rate from 0 to 255
+	  byte Color_B; // blue color component for the clock    
     byte Hue;     // hue
     byte daylight; // daylight saving
     boolean hdmode;    // hd mode = 2 LED's per Pixel
-}   config __attribute__((packed));;
-
+} config;
 
 void ConfigureWifi()
 {
@@ -42,19 +44,15 @@ void WriteConfig()
 	EEPROM.write(3,'C');
 	EEPROM.write(4,'K');
   EEPROM.write(15, config.hdmode? (byte)1:(byte)0);
-
 	EEPROM.write(16,config.dhcp);
 	EEPROM.write(17,config.daylight);
 	
 	EEPROMWritelong(18,config.Update_Time_Via_NTP_Every); // 4 Byte
-
 	EEPROMWritelong(22,config.timezone);  // 4 Byte
-
 
 	EEPROM.write(26,config.Color_R);
 	EEPROM.write(27,config.Color_G);
-	EEPROM.write(28,config.Color_B);
-  EEPROM.write(29,config.Dynamic);
+	EEPROM.write(28,config.Color_B);  
   EEPROM.write(30,config.Hue);
   EEPROM.write(31,config.ap);
 	EEPROM.write(32,config.IP[0]);
@@ -72,15 +70,11 @@ void WriteConfig()
 	EEPROM.write(42,config.Gateway[2]);
 	EEPROM.write(43,config.Gateway[3]);
 
-
 	WriteStringToEEPROM(64,config.ssid);
 	WriteStringToEEPROM(96,config.password);
 	WriteStringToEEPROM(128,config.ntpServerName);
-
 	WriteStringToEEPROM(306,config.DeviceName);
 	
-
-
 	EEPROM.commit();
 }
 
@@ -95,19 +89,13 @@ boolean ReadConfig()
     Serial.println("Configuration Found!");
     config.hdmode = (EEPROM.read(15)>0);
     config.dhcp = 	EEPROM.read(16);
-
     config.daylight = EEPROM.read(17);
-
     config.Update_Time_Via_NTP_Every = EEPROMReadlong(18); // 4 Byte
-
     config.timezone = EEPROMReadlong(22); // 4 Byte
-
     config.Color_R = EEPROM.read(26);
     config.Color_G = EEPROM.read(27);
-    config.Color_B = EEPROM.read(28);
-    config.Dynamic = EEPROM.read(29);
+    config.Color_B = EEPROM.read(28);    
     config.Hue = EEPROM.read(30);
-
     config.ap = EEPROM.read(31);
     config.IP[0] = EEPROM.read(32);
     config.IP[1] = EEPROM.read(33);
@@ -124,16 +112,42 @@ boolean ReadConfig()
     config.ssid = ReadStringFromEEPROM(64);
     config.password = ReadStringFromEEPROM(96);
     config.ntpServerName = ReadStringFromEEPROM(128);
-            
     config.DeviceName= ReadStringFromEEPROM(306);
-
     Serial.print("ssid: ");
     Serial.println(config.ssid);
-    
     Serial.print("password: ");
     Serial.println(config.password);
-
-
-    
     return true;		
 }
+
+#define defaultApPassword "00000000" 
+void setDefaultConfig()
+{
+  // DEFAULT CONFIG
+  config.ssid = "workclock";
+  config.password = defaultApPassword;
+  config.dhcp = true;
+  config.ap = true;
+  config.IP[0] = 192; config.IP[1] = 168; config.IP[2] = 2; config.IP[3] = 252;
+  config.Netmask[0] = 255; config.Netmask[1] = 255; config.Netmask[2] = 255; config.Netmask[3] = 0;
+  config.Gateway[0] = 192; config.Gateway[1] = 168; config.Gateway[2] = 2; config.Gateway[3] = 1;
+  config.ntpServerName = "0.de.pool.ntp.org";
+  config.Update_Time_Via_NTP_Every =  0;
+  config.timezone = +1;
+  config.daylight = false;
+  config.hdmode = true;
+  config.DeviceName = "clock_";
+  for (int i = 0; i < 5; i++)
+  {
+    byte randomValue = random(0, 26);
+    char letter = randomValue + 'a';
+    config.DeviceName = config.DeviceName + letter;
+  }
+  config.Color_R = 255;
+  config.Color_G = 255;
+  config.Color_B = 255;
+  config.Hue = 255;
+ 
+}
+
+#endif

@@ -73,8 +73,7 @@ function callParameterUpdate()
         "?color="+encodeURIComponent("#"+$("color").value)+
         "&hdmode="+$("hdmode").checked+
         "&devicename="+$("devicename").value+
-        "&hue="+$("hue").value+
-        "&dynamic="+$("dynamic").value+
+        "&hue="+$("hue").value+        
         "&ssid="+$("ssid").value+
         "&password="+$("password").value+
         "&apmode="+$("apmode").checked+
@@ -105,16 +104,6 @@ function RefreshClock(next)
                 $('clock').innerHTML+="<br />";
             }
         }        
-        /*
-        for(var x = 0, c=''; c = result.charAt(x); x++){ 
-            $('clock').innerHTML+=c;
-            if (x % 11 == 10)
-            {
-                $('clock').innerHTML+="\n";
-            } 
-        }
-        */
-
         if (typeof(next) !== "undefined")
         {
             next();

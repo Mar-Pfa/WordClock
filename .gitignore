@@ -1,3 +1,6 @@
 node_modules
 .vscode
 .build
+definitions.backup.h
+updateserver/definitions.backup.php
+builds
