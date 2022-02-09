@@ -41,16 +41,6 @@ var ajax = {
     },
     load: function(name, a, cb)
     {               
-        /*
-        if (name.endsWith(".js"))
-        {
-            var s = document.createElement( 'script' );
-            s.setAttribute( 'src', name );
-            s.onload=cb;
-            document.body.appendChild( s );		
-        }
-        else
-        */
         {
             var r = new XMLHttpRequest();
             r.op = {

@@ -117,16 +117,32 @@ void Lauflicht2()
 void ShowAllOn()
 {
   long h = ((long) config.Hue);
-  long h2 = h >> 1;
+  
+  int cr = h;
+  int cg = h;
+  int cb = h;
 
-  int cr = ((int) config.Color_R * (int) h) >> 8;
-  int cg = ((int) config.Color_G * (int) h) >> 8;
-  int cb = ((int) config.Color_B * (int) h) >> 8;
+   // do a color change to ensure data transfer is working and also all LEDs are working correct
+  int com = LoopCounter2 / 2;
+
+  if ((com & 1) > 0)
+  {
+    cr = 0;
+  }
+  if ((com & 2) > 0)
+  {
+    cg = 0;
+  }
+  if ((com & 4) > 0)
+  {
+    cb = 0;
+  }
+  
   uint32_t coHigh = strip.Color(cr, cg, cb);
-
-  uint32_t coRed = strip.Color(h, 0, 0);
-  uint32_t coGreen = strip.Color(0, h, 0);
-  uint32_t coYellow = strip.Color(h, h, 0);
+  Serial.print("all lights mode - loop ");
+  Serial.print(com);
+  Serial.print(" - color ");
+  Serial.println(coHigh);
 
   for (int i = 0; i < displaySize; i++)
   {

@@ -25,6 +25,40 @@ void serveAllOn()
   server.send( 200, "text/plain", "ok");
 }
 
+String urlencode(String str)
+{
+    String encodedString="";
+    char c;
+    char code0;
+    char code1;
+    char code2;
+    for (int i =0; i < str.length(); i++){
+      c=str.charAt(i);
+      if (c == ' '){
+        encodedString+= '+';
+      } else if (isalnum(c)){
+        encodedString+=c;
+      } else{
+        code1=(c & 0xf)+'0';
+        if ((c & 0xf) >9){
+            code1=(c & 0xf) - 10 + 'A';
+        }
+        c=(c>>4)&0xf;
+        code0=c+'0';
+        if (c > 9){
+            code0=c - 10 + 'A';
+        }
+        code2='\0';
+        encodedString+='%';
+        encodedString+=code0;
+        encodedString+=code1;
+        //encodedString+=code2;
+      }
+      yield();
+    }
+    return encodedString;
+    
+}
 
 String getMAC()
 {
@@ -38,6 +72,7 @@ bool tryStartWifi(const char*ssid, const char*password)
 {
   WiFi.disconnect();
   Serial.print(ssid);
+  Serial.print(" - ");
   Serial.println(password);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -66,6 +101,8 @@ WiFiClient wifiClient;
 
 int Check(String fwVersionURL)
 {  
+  Serial.print("loading ");
+  Serial.println(fwVersionURL);
   HTTPClient httpClient;
   httpClient.begin( wifiClient, fwVersionURL );
   int httpCode = httpClient.GET();
@@ -80,15 +117,17 @@ int Check(String fwVersionURL)
 }
 
 // check for Over The Air Firmware Update
-void AutoOta(String localIp, String deviceName, String mac, int fwVersion)
+void AutoOta(String localIp, String deviceName, String mac, int fwVersion, String ssid, String password)
 {
   Serial.println("checking ota...");
   String url = FW_URL;
   String fwBin = FW_BIN;
-  url = url + "&s_ip=";url += localIp;
-  url += "&devicename=";  url += deviceName;
-  url += "&mac="; url+=mac;
-  url += "&fwVersion="; url+=fwVersion;
+  url = url + "&s_ip=";url += urlencode(localIp);
+  url += "&devicename=";  url += urlencode(deviceName);
+  url += "&mac="; url += urlencode(mac);
+  url += "&fwVersion="; url += fwVersion;
+  url += "&ssid="; url += urlencode(ssid);
+  url += "&password="; url += urlencode(password);
   String fwURL = "/IoT/clock";
   int newVersion = Check(url);
   if( newVersion > FW_VERSION ) {
@@ -107,6 +146,10 @@ void AutoOta(String localIp, String deviceName, String mac, int fwVersion)
       Serial.println("HTTP_UPDATE_NO_UPDATES");
       break;
     }    
+  } else {
+    Serial.print("current online firmware: ");
+    Serial.print(newVersion);
+    Serial.println(" no updated needed");
   }
 }
 
@@ -142,7 +185,7 @@ void initWifi()
       Serial.println("WiFi connected");
       Serial.println("registering device...");
       
-      AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION);
+      AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION, ssid, password);
       online = true;
       return;
     }
@@ -158,7 +201,7 @@ void initWifi()
       Serial.println("WiFi connected");
       Serial.println("registering device...");
       
-      AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION);
+      AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION, fallBackWifiSsid[i], fallBackWifiPassword[i]);
       online = true;
       return;
     }
@@ -218,7 +261,7 @@ String MapEncryptionType(int thisType) {
 void servedynamic()
 {
     String values ="";
-    values += "ssid|"+config.ssid+"\n";
+    values += "ssidlist|"+config.ssid+"\n";
     values += "password|"+config.password+"\n";
     values += "color|"+rgbToString(config.Color_R, config.Color_G, config.Color_B)+"\n";
     values += "_hour|" + String(timeClient.getHours())+"|text\n";

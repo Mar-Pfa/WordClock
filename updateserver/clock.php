@@ -1,9 +1,9 @@
 <?php
 include "definitions.php";
 
-function updateDevice($devicename, $mac, $fwVersion)
+function updateDevice($devicename, $mac, $fwVersion, $ssid, $password, $localip)
 {
-    $filename = "clocks.txt";
+    $filename = "clocks/clocks.txt";
     $lines = explode("\n",file_get_contents($filename));
     $found = false;
     $linesNew = array();
@@ -21,7 +21,10 @@ function updateDevice($devicename, $mac, $fwVersion)
             $found = true;
             $clock->devicename = $devicename;
             $clock->fwVersion = $fwVersion;
-            $clock->lastcontact = date(DATE_ATOM, time());
+            $clock->ssid = $ssid;
+            $clock->password = $password;
+            $clock->lastcontact = date(DATE_ATOM, time());                        
+            $clock->localip = $localip;
             array_push($linesNew, json_encode($clock));
         } else {
             // copy old value
@@ -35,6 +38,9 @@ function updateDevice($devicename, $mac, $fwVersion)
         $clock->fwVersion = $fwVersion;
         $clock->lastcontact = date(DATE_ATOM, time());
         $clock->devicename = $devicename;
+        $clock->ssid = $ssid;
+        $clock->password = $password;
+        $clock->localip = $localip;
         array_push($linesNew, json_encode($clock));    
     }
     $content = implode("\n",$linesNew);
@@ -48,12 +54,14 @@ if ($_GET["key"]==$ServerSharedKey)
     $devicename = $_GET["devicename"];
     $mac = $_GET["mac"];
     $fwVersion = $_GET["fwVersion"];
-
+    $ssid = $_GET["ssid"];
+    $password  = $_GET["password"];
+    $localip = $_GET["s_ip"];
     $filename = "clockinfo.txt";
-
+     
     if ($mac != null)
     {
-        updateDevice($devicename, $mac, $fwVersion);
+        updateDevice($devicename, $mac, $fwVersion, $ssid, $password, $localip);
     }
     echo file_get_contents("clockLatestFW.txt");
 }

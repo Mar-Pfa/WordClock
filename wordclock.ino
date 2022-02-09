@@ -18,13 +18,14 @@
    Serial No. 3
    SD
    Linda Siegsdorf
-   Serial No. 4
+   NodeMcu 1.0 ESP-12E
+   Serial No. 4   
    Doris
    HD
    Wemos D1 mini
 */
 
-const int FW_VERSION = 1002;
+const int FW_VERSION = 1007;
 const long utcOffsetInSeconds = 3600;
 
 

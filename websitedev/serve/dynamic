@@ -1,8 +1,7 @@
-ssid|blabladingens
+ssidlist|WLAN-57F873
 password|uuuuuuuuuuuu
 color|#FF0000
 _hour|5|text
 _minute|22|text
 hue|255
-envhue|70%|text
 devicename|clock_a3fse
