@@ -234,9 +234,12 @@ void CalculateTime()
   if (h > 11) h -= 12;
   int m = timeClient.getMinutes();
 
-  updateDisplay(word_es[0], word_es[1]);
-  updateDisplay(word_ist[0], word_ist[1]);
-
+  if (config.itison || (m<5) || (m>=30 && m<=34))
+  {
+    updateDisplay(word_es[0], word_es[1]);
+    updateDisplay(word_ist[0], word_ist[1]);
+  }
+  
   int hadd = h + 1;
   if (hadd == 12)
     hadd = 0;
@@ -259,15 +262,27 @@ void CalculateTime()
   } else if (m < 15) {
     updateDisplay(word_m_zehn[0], word_m_zehn[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_hours[h][0], word_hours[h][1]);
+    updateDisplay(word_hours[h][0], word_hours[h][1]);     
   } else if (m < 20) {
-    updateDisplay(word_m_viertel[0], word_m_viertel[1]);
-    updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_hours[h][0], word_hours[h][1]);
+    if (config.speechmode){      
+      updateDisplay(word_m_viertel[0], word_m_viertel[1]);      
+      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    } else {
+      updateDisplay(word_m_viertel[0], word_m_viertel[1]);
+      updateDisplay(word_m_nach[0], word_m_nach[1]);
+      updateDisplay(word_hours[h][0], word_hours[h][1]);      
+    }    
   } else if (m < 25) {
-    updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
-    updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_hours[h][0], word_hours[h][1]);
+    if (config.speechmode){      
+      updateDisplay(word_m_zehn[0], word_m_zehn[1]);  
+      updateDisplay(word_m_vor[0], word_m_vor[1]);
+      updateDisplay(word_m_halb[0], word_m_halb[1]);
+      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);     
+    } else {
+      updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
+      updateDisplay(word_m_nach[0], word_m_nach[1]);
+      updateDisplay(word_hours[h][0], word_hours[h][1]);
+    }
   } else if (m < 30) {
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
@@ -282,10 +297,16 @@ void CalculateTime()
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
   } else if (m < 45) {
-    updateDisplay(word_m_zehn[0], word_m_zehn[1]);
-    updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_m_halb[0], word_m_halb[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    if (config.speechmode){      
+      updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
+      updateDisplay(word_m_vor[0], word_m_vor[1]);
+      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);     
+    } else {
+      updateDisplay(word_m_zehn[0], word_m_zehn[1]);
+      updateDisplay(word_m_nach[0], word_m_nach[1]);
+      updateDisplay(word_m_halb[0], word_m_halb[1]);
+      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    }
   } else if (m < 50) {
     updateDisplay(word_m_viertel[0], word_m_viertel[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);

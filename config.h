@@ -22,6 +22,8 @@ struct strConfig {
     byte Hue;     // hue
     byte daylight; // daylight saving
     boolean hdmode;    // hd mode = 2 LED's per Pixel
+    boolean itison;  // "es ist" is always on (otherwise only half and full hour)
+    boolean speechmode; // on = Dreiviertel ... / off = Viertel Vor...
 } config;
 
 void ConfigureWifi()
@@ -43,6 +45,8 @@ void WriteConfig()
 	EEPROM.write(2,'O');
 	EEPROM.write(3,'C');
 	EEPROM.write(4,'K');
+  EEPROM.write(13, config.speechmode? (byte)0:(byte)1);
+  EEPROM.write(14, config.itison? (byte)0:(byte)1);
   EEPROM.write(15, config.hdmode? (byte)1:(byte)0);
 	EEPROM.write(16,config.dhcp);
 	EEPROM.write(17,config.daylight);
@@ -87,6 +91,9 @@ boolean ReadConfig()
   		return false;
   	}
     Serial.println("Configuration Found!");
+ 
+    config.speechmode = (EEPROM.read(13)==0);
+    config.itison = (EEPROM.read(14)==0);   
     config.hdmode = (EEPROM.read(15)>0);
     config.dhcp = 	EEPROM.read(16);
     config.daylight = EEPROM.read(17);
@@ -112,11 +119,11 @@ boolean ReadConfig()
     config.ssid = ReadStringFromEEPROM(64);
     config.password = ReadStringFromEEPROM(96);
     config.ntpServerName = ReadStringFromEEPROM(128);
-    config.DeviceName= ReadStringFromEEPROM(306);
+    config.DeviceName= ReadStringFromEEPROM(306);    
     Serial.print("ssid: ");
     Serial.println(config.ssid);
     Serial.print("password: ");
-    Serial.println(config.password);
+    Serial.println(config.password);    
     return true;		
 }
 
@@ -128,6 +135,8 @@ void setDefaultConfig()
   config.password = defaultApPassword;
   config.dhcp = true;
   config.ap = true;
+  config.speechmode = true;
+  config.itison = true;
   config.IP[0] = 192; config.IP[1] = 168; config.IP[2] = 2; config.IP[3] = 252;
   config.Netmask[0] = 255; config.Netmask[1] = 255; config.Netmask[2] = 255; config.Netmask[3] = 0;
   config.Gateway[0] = 192; config.Gateway[1] = 168; config.Gateway[2] = 2; config.Gateway[3] = 1;

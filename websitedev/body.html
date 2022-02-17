@@ -16,8 +16,14 @@
             <label for="password">Password:</label>
             <input placeholder="password" id="password" type="password" oninput = "prepareParameterUpdate();return false;"/>            
 
-            <label for="hdCheckBox">HD Mode:</label>
+            <label for="hdmode">HD Mode:</label>
             <input type="checkbox" id="hdmode" value="1" onchange="prepareParameterUpdate();return false;" />
+
+            <label for="esistimmeran">"Es Ist" immer an</label>
+            <input type="checkbox" id="esistimmeran" value="0" onchange="prepareParameterUpdate();return false;" />
+
+            <label for="speechmode">an = viertel zwei / aus = Viertel nach eins </label>
+            <input type="checkbox" id="speechmode" value="0" onchange="prepareParameterUpdate();return false;" />
 
             <label for="color">Farbe</label> 
 	        <!--<input class="color" style="width:100%" class="jscolor" value="" id="color" onchange="prepareParameterUpdate();return false;" oninput = "prepareParameterUpdate();return false;" /><br />-->

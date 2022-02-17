@@ -23,9 +23,14 @@
    Doris
    HD
    Wemos D1 mini
+   
+   Firmware Version 1008 changes
+   - added "es ist" always on vs only half and full hour
+   - added "speechmode" to viertel nach eins vs. viertel zwei
+   - fixed "hdmode" storage on website
 */
 
-const int FW_VERSION = 1007;
+const int FW_VERSION = 1008;
 const long utcOffsetInSeconds = 3600;
 
 

@@ -5,3 +5,6 @@ _hour|5|text
 _minute|22|text
 hue|255
 devicename|clock_a3fse
+hdmode|true
+esistimmeran|true
+speechmode|true

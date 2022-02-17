@@ -77,6 +77,8 @@ function callParameterUpdate()
         "&ssid="+$("ssid").value+
         "&password="+$("password").value+
         "&apmode="+$("apmode").checked+
+        "&esistimmeran="+$("esistimmeran").checked+
+        "&speechmode="+$("speechmode").checked+        
         "&ssidlist="+$("ssidlist").value;
     ajax.loaddirect(query);
 }
@@ -128,7 +130,16 @@ function updateDynamic(next)
                 var parts = entry.split("|");
                 if (parts.length == 2)
                 {
-                    $(parts[0]).value=parts[1].trim();
+                    var newValue = parts[1].trim();
+                    if (newValue == "true" || (newValue == "false"))
+                    {
+                        $(parts[0]).checked=newValue;
+                    }
+                    else
+                    {
+                        $(parts[0]).value=newValue;
+                    }
+                    
                 }                        
                 if (parts.length == 3)
                 {

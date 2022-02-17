@@ -269,6 +269,8 @@ void servedynamic()
     values += "hue|"+String(config.Hue)+"\n";        
     values += "devicename|"+String(config.DeviceName)+ "\n";
     values += "hdmode|"+String(config.hdmode?"true":"false")+"\n";
+    values += "speechmode|"+String(config.speechmode?"true":"false")+"\n";
+    values += "esistimmeran|"+String(config.itison?"true":"false")+"\n";  
     server.send ( 200, "text/plain", values);   
 }
 
@@ -294,6 +296,19 @@ void serveupdate()
           config.hdmode = (server.arg("hdmode") == "true");
           Serial.println(config.hdmode);
         }        
+
+        if (server.hasArg("esistimmeran")) {
+          Serial.print("Update esistimmeran ");
+          config.itison = (server.arg("esistimmeran") == "true");
+          Serial.println(config.itison);
+        }        
+        
+        if (server.hasArg("speechmode")) {
+          Serial.print("Update speechmode");
+          config.itison = (server.arg("speechmode") == "true");
+          Serial.println(config.speechmode);
+        }        
+                
         if (server.hasArg("ssidlist") && !config.ap) config.ssid=server.arg("ssidlist");
         if (server.hasArg("devicename")) config.DeviceName=server.arg("devicename");
         if (server.hasArg("password")) {
@@ -313,6 +328,7 @@ void serveupdate()
              config.Color_B = h2int(co[5]) *16 +h2int(co[6]);                 
           }        
         }
+        Serial.print("color:"); Serial.print(config.Color_R);Serial.print(config.Color_G);Serial.print(config.Color_B);Serial.println();
         Serial.print("hue:"); Serial.println(config.Hue);
         Serial.print("apMode:"); Serial.println(config.ap);
         Serial.print("ssid:"); Serial.println(config.ssid);
