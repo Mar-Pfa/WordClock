@@ -44,7 +44,7 @@ FW History
    - try wifi reconnect after 30 seconds if first try was not successfull
 */
 
-const int FW_VERSION = 1011;
+const int FW_VERSION = 1012;
 const long utcOffsetInSeconds = 3600;
 
 
