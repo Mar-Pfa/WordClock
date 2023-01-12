@@ -77,7 +77,7 @@ function callParameterUpdate()
         "&ssid="+$("ssid").value+
         "&password="+$("password").value+
         "&apmode="+$("apmode").checked+
-        "&esistimmeran="+$("esistimmeran").checked+
+        "&itison="+$("itison").checked+
         "&speechmode="+$("speechmode").checked+        
         "&ssidlist="+$("ssidlist").value;
     ajax.loaddirect(query);
@@ -131,7 +131,7 @@ function updateDynamic(next)
                 if (parts.length == 2)
                 {
                     var newValue = parts[1].trim();
-                    if (newValue == "true" || (newValue == "false"))
+                    if (newValue == "true" || newValue == "false")
                     {
                         $(parts[0]).checked=newValue;
                     }

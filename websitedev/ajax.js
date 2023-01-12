@@ -81,8 +81,12 @@ var ajax = {
                     switch(this.op._a.Type)
                     {
                         case "replace":
+                            console.log("replace "+this.op._a.Id+" with "+this.op._data);
                             var e = document.getElementById(this.op._a.Id);
-                            e[this.op._a.Tag] = this.op._data;
+                            if (e != null)
+                            {
+                                e[this.op._a.Tag] = this.op._data;
+                            }
                             break;
                         case "insert":
                             if (this.op._url.endsWith(".js"))

@@ -131,7 +131,7 @@ boolean ReadConfig()
 void setDefaultConfig()
 {
   // DEFAULT CONFIG
-  config.ssid = "workclock";
+  config.ssid = "wordclock";
   config.password = defaultApPassword;
   config.dhcp = true;
   config.ap = true;

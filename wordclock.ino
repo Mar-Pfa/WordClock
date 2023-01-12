@@ -9,38 +9,56 @@
  * EspAsyncTcp - install manually from https://github.com/me-no-dev/ESPAsyncTCP
  * ESPAsyncWebServer - install manually from https://github.com/me-no-dev/ESPAsyncWebServer
  * 
-   Serial No. 1
+   Serial No. 1 NodeMcu ESP12E
    Dayana
    HD
-   Serial No. 2
+   
+   Serial No. 2 NodeMcu ESP12E
    Linda Nbg
    HD
-   Serial No. 3
+   
+   Serial No. 3 NodeMcu 1.0 ESP-12E
    SD
    Linda Siegsdorf
-   NodeMcu 1.0 ESP-12E
-   Serial No. 4   
+   
+   Serial No. 4 Wemos D1 mini
    Doris
    HD
-   Wemos D1 mini
-   
+
+
+FW History
+  1002 add working OTA Support
+  1003 add Siegsdorf Wifi
+  1004 - 1006 add color change mode        
    Firmware Version 1008 changes
    - added "es ist" always on vs only half and full hour
    - added "speechmode" to viertel nach eins vs. viertel zwei
    - fixed "hdmode" storage on website
+   Firmware Version 1009 changes
+   - bugfixes for 1008
+   Firmware Version 1010 changes
+   - bugfixes for 1009 - fixed clock display, new stable version for online delivery
+   Firmware Version 1011 changes
+   - remove ntpclient and switch to time.h to fix Daylight Saving Time behaviour
+   Firmware Version 1012 changes
+   - try wifi reconnect after 30 seconds if first try was not successfull
 */
 
-const int FW_VERSION = 1008;
+const int FW_VERSION = 1011;
 const long utcOffsetInSeconds = 3600;
 
 
-#include <NTPClient.h>
 #include <ESP8266WiFi.h>
 #include <WiFiUdp.h>
 
-// Define NTP Client to get time
-WiFiUDP ntpUDP;
-NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
+/* Configuration of NTP */
+#define MY_NTP_SERVER "at.pool.ntp.org"           
+#define MY_TZ "CET-1CEST,M3.5.0/02,M10.5.0/03"  
+#include <time.h>   
+/* Globals */
+time_t now;                         // this is the epoch
+tm tm;                              // the structure tm holds time information in a more convient way
+
 
 #include "helpers.h"
 #include "config.h"
@@ -48,7 +66,6 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", utcOffsetInSeconds);
 #include "website.h"
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-
 
 void setup(){
   EEPROM.begin(512);  
@@ -63,14 +80,6 @@ void setup(){
   {
     setDefaultConfig();
   }
-  
-  if (config.ssid == "")
-  {
-    config.ap = true;
-    config.ssid = "wordclock";
-    config.password = defaultApPassword;
-  }
-
 
   pinMode(ledPin, OUTPUT);
   digitalWrite(ledPin, LOW);
@@ -86,7 +95,9 @@ void setup(){
 
   initWifi();
   
-  timeClient.begin();
+  configTime(MY_TZ, MY_NTP_SERVER); // --> Here is the IMPORTANT ONE LINER needed in your sketch!
+
+  //timeClient.begin();
 
   InitServer();
   
@@ -99,12 +110,18 @@ void setup(){
 }
 
 void loop() {  
-  timeClient.update();
-
+  // timeClient.update();
+  time(&now);
+  localtime_r(&now, &tm);           // update the structure tm with the current time
+  
   WatchLoop();
-  WebServerLoop();
-
-  delay(10);
+  WifiStatusCheck();
+  for (int i=0;i<10;i++)
+  {
+    WebServerLoop();   
+    delay(0);
+  }
+  
   // every 8 hours -> restart
   if (LoopCounter2 > 2 * 60 * 60 * 8)
   {

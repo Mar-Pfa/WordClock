@@ -208,11 +208,37 @@ void initWifi()
   }
   
   Serial.print("cannot connect, switching to access point mode ");
+  /*
   config.ap = true;
   config.ssid = "wordclock";
   config.password = defaultApPassword;
+  */
   WiFi.mode(WIFI_AP);
   WiFi.softAP(ssid, password);
+}
+
+unsigned long wifiStatusCheckMillis;
+void WifiStatusCheck()
+{  
+  // when we have no active WiFi connection check it every 5 Minutes
+  Serial.println("WiFi Status Check...");
+  Serial.print("Online: ");
+  Serial.println(online);
+  Serial.print("AP: ");
+  Serial.println(config.ap);
+  if (online == false && config.ap == false)  
+  {    
+    unsigned long nowMillis = millis();
+    // check every 30 seconds if we can connect to the wifi
+    if (nowMillis < wifiStatusCheckMillis || wifiStatusCheckMillis+30000 < nowMillis)
+    {
+       Serial.println("trying...");
+       initWifi();
+       wifiStatusCheckMillis = millis();      
+    } else {
+      Serial.println("waiting...");
+    }
+  }
 }
 
 #define webblocksize 3000
@@ -264,13 +290,15 @@ void servedynamic()
     values += "ssidlist|"+config.ssid+"\n";
     values += "password|"+config.password+"\n";
     values += "color|"+rgbToString(config.Color_R, config.Color_G, config.Color_B)+"\n";
-    values += "_hour|" + String(timeClient.getHours())+"|text\n";
-    values += "_minute|" + String(timeClient.getMinutes()) + "|text\n";
+    //values += "_hour|" + String(timeClient.getHours())+"|text\n";
+    values += "_hour|" + String(tm.tm_hour)+"|text\n";
+    //values += "_minute|" + String(timeClient.getMinutes()) + "|text\n";
+    values += "_minute|" + String(tm.tm_min) + "|text\n";
     values += "hue|"+String(config.Hue)+"\n";        
     values += "devicename|"+String(config.DeviceName)+ "\n";
     values += "hdmode|"+String(config.hdmode?"true":"false")+"\n";
     values += "speechmode|"+String(config.speechmode?"true":"false")+"\n";
-    values += "esistimmeran|"+String(config.itison?"true":"false")+"\n";  
+    values += "itison|"+String(config.itison?"true":"false")+"\n";  
     server.send ( 200, "text/plain", values);   
 }
 
@@ -297,15 +325,15 @@ void serveupdate()
           Serial.println(config.hdmode);
         }        
 
-        if (server.hasArg("esistimmeran")) {
-          Serial.print("Update esistimmeran ");
-          config.itison = (server.arg("esistimmeran") == "true");
+        if (server.hasArg("itison")) {
+          Serial.print("Update itison ");
+          config.itison = (server.arg("itison") == "true");
           Serial.println(config.itison);
         }        
         
         if (server.hasArg("speechmode")) {
           Serial.print("Update speechmode");
-          config.itison = (server.arg("speechmode") == "true");
+          config.speechmode = (server.arg("speechmode") == "true");
           Serial.println(config.speechmode);
         }        
                 

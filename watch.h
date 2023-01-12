@@ -21,9 +21,10 @@ all watch definitions
 
 char *letters = "abcdefghijklmnopqrstuvwxyz0123456789";
 const char* baum  = "     y          g        y g y       ggg      y ggg y     ggggg    y ggggg y   ggggggg  y ggggggg y ggggggggg ....";
-const char *hiday = "                        W           W WW        W           W           W           W                             ";
-const char *heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     rrrr";
+const char* hiday = "                        W           W WW        W           W           W           W                             ";
+const char* heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     rrrr";
 const char* words = "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";
+const char* helper= "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";      
 const byte word_es[2] = {0, 1};
 const byte word_ist[2] = {3, 5};
 const byte word_uhr[2] = {107, 109};
@@ -51,6 +52,7 @@ const byte word_h_zwoelf[2] = {94, 98};
 
 const byte word_hours[12][2] = {{94, 98}, {55, 58}, {62, 65}, {66, 69}, {73, 76}, {51, 54}, {77, 81}, {88, 93}, {84, 87}, {102, 105}, {99, 102}, {49, 51}};
 
+
 char displayarray[displaySize + 1];
 
 void initDisplay()
@@ -68,10 +70,16 @@ void updateDisplay(byte from, byte to)
 {
   for (int i = from; i <= to; i++)
   {
+    if (i < 0 || i > 114)
+    {
+      Serial.print("trying to write to display on ");
+      Serial.print(i);
+      Serial.println();
+      return;
+    }
     displayarray[i] = words[i];
   }
 }
-
 #define StripPin D5
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize * 2, StripPin, NEO_GRB + NEO_KHZ800);
 
@@ -209,7 +217,7 @@ void ShowTime()
       strip.setPixelColor(i * 2 + 1, co);
     } else {
       strip.setPixelColor(i, co);
-    }
+    }    
   }
   displayarray[displaySize] = 0;
   strip.show();
@@ -217,32 +225,47 @@ void ShowTime()
 
 void TimetoConsole()
 {
+  /*
   Serial.print(timeClient.getHours());
   Serial.print(":");
   Serial.print(timeClient.getMinutes());
   Serial.print(":");
   Serial.println(timeClient.getSeconds());  
+  */
+
+  Serial.print(tm.tm_hour);
+  Serial.print(":");
+  Serial.print(tm.tm_min);
+  Serial.print(":");
+  Serial.println(tm.tm_sec);  
+
 }
 
 /*
    calculate the correct time
 */
-void CalculateTime()
-{
-  initDisplay();
-  int h = timeClient.getHours();
-  if (h > 11) h -= 12;
-  int m = timeClient.getMinutes();
 
-  if (config.itison || (m<5) || (m>=30 && m<=34))
-  {
-    updateDisplay(word_es[0], word_es[1]);
-    updateDisplay(word_ist[0], word_ist[1]);
-  }
-  
+void SetTimeToDisplay(int h, int m)
+{
   int hadd = h + 1;
   if (hadd == 12)
     hadd = 0;
+
+  if (config.itison==true)
+  {
+    updateDisplay(word_es[0], word_es[1]);
+    updateDisplay(word_ist[0], word_ist[1]);    
+  } 
+  if (m>=0 && m<5)
+  {
+    updateDisplay(word_es[0], word_es[1]);
+    updateDisplay(word_ist[0], word_ist[1]);        
+  }  
+  if (m>=30 && m<35)
+  {
+    updateDisplay(word_es[0], word_es[1]);
+    updateDisplay(word_ist[0], word_ist[1]);            
+  }
 
   if (m < 5)
   {
@@ -255,15 +278,24 @@ void CalculateTime()
       updateDisplay(word_hours[h][0], word_hours[h][1]);
     }
     updateDisplay(word_uhr[0], word_uhr[1]);
-  } else if (m < 10) {
+    return;
+  }
+  
+  if (m < 10) {
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_hours[h][0], word_hours[h][1]);
-  } else if (m < 15) {
+    return;
+  }
+
+  if (m < 15) {
     updateDisplay(word_m_zehn[0], word_m_zehn[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_hours[h][0], word_hours[h][1]);     
-  } else if (m < 20) {
+    return;
+  }
+
+  if (m < 20) {
     if (config.speechmode){      
       updateDisplay(word_m_viertel[0], word_m_viertel[1]);      
       updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
@@ -272,7 +304,10 @@ void CalculateTime()
       updateDisplay(word_m_nach[0], word_m_nach[1]);
       updateDisplay(word_hours[h][0], word_hours[h][1]);      
     }    
-  } else if (m < 25) {
+    return;
+  }  
+
+  if (m < 25) {
     if (config.speechmode){      
       updateDisplay(word_m_zehn[0], word_m_zehn[1]);  
       updateDisplay(word_m_vor[0], word_m_vor[1]);
@@ -283,20 +318,32 @@ void CalculateTime()
       updateDisplay(word_m_nach[0], word_m_nach[1]);
       updateDisplay(word_hours[h][0], word_hours[h][1]);
     }
-  } else if (m < 30) {
+    return;
+  }  
+  
+  if (m < 30) {
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m < 35) {
+    return;
+  }
+
+ if (m < 35) {
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m < 40) {
+    return;
+  } 
+  
+  if (m < 40) {
     updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
     updateDisplay(word_m_nach[0], word_m_nach[1]);
     updateDisplay(word_m_halb[0], word_m_halb[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m < 45) {
+    return;
+  } 
+  
+  if (m < 45) {
     if (config.speechmode){      
       updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
       updateDisplay(word_m_vor[0], word_m_vor[1]);
@@ -307,20 +354,39 @@ void CalculateTime()
       updateDisplay(word_m_halb[0], word_m_halb[1]);
       updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     }
-  } else if (m < 50) {
+    return;
+  } 
+  
+  if (m < 50) {
     updateDisplay(word_m_viertel[0], word_m_viertel[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else if (m < 55) {
+    return;
+  } 
+  
+  if (m < 55) {
     updateDisplay(word_m_zehn[0], word_m_zehn[1]);
     updateDisplay(word_m_vor[0], word_m_vor[1]);
     updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  } else {
-    updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
-    updateDisplay(word_m_vor[0], word_m_vor[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  }
+    return;
+  } 
+  
+  updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
+  updateDisplay(word_m_vor[0], word_m_vor[1]);
+  updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+  
+  
+}
 
+void CalculateTime()
+{
+  initDisplay();
+  int h = tm.tm_hour; //timeClient.getHours();
+  if (h > 11) h -= 12;
+  int m = tm.tm_min; //timeClient.getMinutes();
+
+  SetTimeToDisplay(h, m);
+  
   int l;
   for (l = 0; l < m % 5; l ++)
   {
@@ -340,10 +406,31 @@ void WatchLoop()
     return;
   }
 
+  if (config.DeviceName == "clock_dayan")
+  {
+    if (LoopCounter < 400)
+    {
+      for (int i=0;i<displaySize ;i++)
+      {
+        displayarray[i] = hiday[i];
+      }
+      ShowTime();     
+      return;
+    } else if (LoopCounter < 600)
+    {
+      for (int i=0;i<displaySize ;i++)
+      {
+        displayarray[i] = heart[i];
+      }
+      ShowTime();     
+      return;      
+    }
+  }
+
   if (LoopCounter % 40 == 0)
   {
     LoopCounter2++;
-    if (LoopCounter2 % 16 == 1) TimetoConsole();
+    if (LoopCounter2 % 64 == 1) TimetoConsole();
 
     CalculateTime(); 
     if (WatchAllOn) {

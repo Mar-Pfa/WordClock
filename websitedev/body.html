@@ -16,17 +16,22 @@
             <label for="password">Password:</label>
             <input placeholder="password" id="password" type="password" oninput = "prepareParameterUpdate();return false;"/>            
 
-            <label for="hdmode">HD Mode:</label>
-            <input type="checkbox" id="hdmode" value="1" onchange="prepareParameterUpdate();return false;" />
+            <div style="white-space: nowrap;">
+                <input type="checkbox" name="hdmode" id="hdmode" value="1" onchange="prepareParameterUpdate();return false;" />
+                HD Mode
+            </div>
 
-            <label for="esistimmeran">"Es Ist" immer an</label>
-            <input type="checkbox" id="esistimmeran" value="0" onchange="prepareParameterUpdate();return false;" />
+            <div style="white-space: nowrap;">            
+                <input type="checkbox" id="itison" value="0" onchange="prepareParameterUpdate();return false;" />
+                "Es Ist" immer an
+            </div>
 
-            <label for="speechmode">an = viertel zwei / aus = Viertel nach eins </label>
-            <input type="checkbox" id="speechmode" value="0" onchange="prepareParameterUpdate();return false;" />
+            <div style="white-space: nowrap;">                        
+                <input type="checkbox" id="speechmode" value="0" onchange="prepareParameterUpdate();return false;" />
+                an = viertel zwei / aus = Viertel nach eins 
+            </div>            
 
-            <label for="color">Farbe</label> 
-	        <!--<input class="color" style="width:100%" class="jscolor" value="" id="color" onchange="prepareParameterUpdate();return false;" oninput = "prepareParameterUpdate();return false;" /><br />-->
+            <label for="color">Farbe</label> 	        
             <input class="jscolor" id="color"  style="width:100%" value="ff0000" onchange="prepareParameterUpdate();return false;" oninput = "prepareParameterUpdate();return false;"/>
             <table style="width:auto">
                 <tr><td>

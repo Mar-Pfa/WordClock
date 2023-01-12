@@ -31,6 +31,9 @@ files.forEach(function(file) {
         if (file.endsWith(".js"))
         {
             output = UglifyJS.minify(file).code;
+        } else if (file.endsWith(".html"))
+        {
+            //output = output.replaceAll("  "," ").replaceAll("  "," ").replaceAll("  "," ").replaceAll("  "," ");
         }
         
         if (output.length > 1024+512) {
