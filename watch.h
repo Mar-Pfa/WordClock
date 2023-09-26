@@ -7,7 +7,6 @@
 #include <Adafruit_NeoPixel.h>
 #include "config.h"
 
-
 #define displaySize 114
 
 bool WatchAllOn = false;
@@ -24,33 +23,37 @@ const char* baum  = "     y          g        y g y       ggg      y ggg y     g
 const char* hiday = "                        W           W WW        W           W           W           W                             ";
 const char* heart = "  rrr rrr   rrrrrrrrr rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr rrrrrrrrr   rrrrrrr     rrrrr       rrr         r     rrrr";
 const char* words = "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";
+const char* wordt = "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";
 const char* helper= "ESKISTMFUNFZEHNZWANZIGAPDJVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";      
-const byte word_es[2] = {0, 1};
-const byte word_ist[2] = {3, 5};
-const byte word_uhr[2] = {107, 109};
-const byte word_m_fuenf[2] = {7, 10};
-const byte word_m_zehn[2] = {11, 14};
-const byte word_m_viertel[2] = {26, 32};
-const byte word_m_zwanzig[2] = {15, 21};
-const byte word_m_vor[2] = {33, 35};
-const byte word_m_nach[2] = {40, 43};
-const byte word_m_halb[2] = {44, 47};
+const char* worig = "ESKISTMFUNFZEHNZWANZIGDREIVIERTELVORAQHINACHHALBYELFUNFEINSWAXZWEIDREIAPNVIERSECHSGLACHTSIEBENZWOLFZEHNEUNTUHR    ";
 
-const byte word_h_ein[2] = {55, 57};
-const byte word_h_eins[2] = {55, 58};
-const byte word_h_zwei[2] = {62, 65};
-const byte word_h_drei[2] = {66, 69};
-const byte word_h_vier[2] = {73, 76};
-const byte word_h_fuenf[2] = {51, 54};
-const byte word_h_sechs[2] = {77, 81};
-const byte word_h_sieben[2] = {88, 93};
-const byte word_h_acht[2] = {84, 87};
-const byte word_h_neun[2] = {102, 105};
-const byte word_h_zehn[2] = {99, 102};
-const byte word_h_elf[2] = {49, 51};
-const byte word_h_zwoelf[2] = {94, 98};
+byte word_es[2] = {0, 1};
+byte word_ist[2] = {3, 5};
+byte word_uhr[2] = {107, 109};
+byte word_m_fuenf[2] = {7, 10};
+byte word_m_zehn[2] = {11, 14};
+byte word_m_dreiviertel[2] = {22, 32}; // works only for "orig" design
+byte word_m_viertel[2] = {26, 32};
+byte word_m_zwanzig[2] = {15, 21};
+byte word_m_vor[2] = {33, 35};
+byte word_m_nach[2] = {40, 43};
+byte word_m_halb[2] = {44, 47};
 
-const byte word_hours[12][2] = {{94, 98}, {55, 58}, {62, 65}, {66, 69}, {73, 76}, {51, 54}, {77, 81}, {88, 93}, {84, 87}, {102, 105}, {99, 102}, {49, 51}};
+byte word_h_ein[2] = {55, 57};
+byte word_h_eins[2] = {55, 58};
+byte word_h_zwei[2] = {62, 65};
+byte word_h_drei[2] = {66, 69};
+byte word_h_vier[2] = {73, 76};
+byte word_h_fuenf[2] = {51, 54};
+byte word_h_sechs[2] = {77, 81};
+byte word_h_sieben[2] = {88, 93};
+byte word_h_acht[2] = {84, 87};
+byte word_h_neun[2] = {102, 105};
+byte word_h_zehn[2] = {99, 102};
+byte word_h_elf[2] = {49, 51};
+byte word_h_zwoelf[2] = {94, 98};
+
+byte word_hours[12][2] = {{94, 98}, {55, 58}, {62, 65}, {66, 69}, {73, 76}, {51, 54}, {77, 81}, {88, 93}, {84, 87}, {102, 105}, {99, 102}, {49, 51}};
 
 
 char displayarray[displaySize + 1];
@@ -80,6 +83,37 @@ void updateDisplay(byte from, byte to)
     displayarray[i] = words[i];
   }
 }
+
+/*
+ * shortcut for UpdateDisplay
+ */
+void updateDisplayWord(byte what[])
+{
+  updateDisplay(what[0], what[1]);
+}
+
+void updateDisplay2Words(byte what1[], byte what2[])
+{
+  updateDisplay(what1[0], what1[1]);
+  updateDisplay(what2[0], what2[1]);
+}
+
+void updateDisplay3Words(byte what1[], byte what2[], byte what3[])
+{
+  updateDisplay(what1[0], what1[1]);
+  updateDisplay(what2[0], what2[1]);
+  updateDisplay(what3[0], what3[1]);
+}
+
+void updateDisplay4Words(byte what1[], byte what2[], byte what3[], byte what4[])
+{
+  updateDisplay(what1[0], what1[1]);
+  updateDisplay(what2[0], what2[1]);
+  updateDisplay(what3[0], what3[1]);
+  updateDisplay(what4[0], what4[1]);  
+}
+
+
 #define StripPin D5
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(displaySize * 2, StripPin, NEO_GRB + NEO_KHZ800);
 
@@ -169,14 +203,19 @@ void ShowAllOn()
 /*
    Display the DisplayArray to the Matrix LED-Display
 */
+int debuggershow = 0;
 void ShowTime()
 {
   long h = ((long) config.Hue);
   long h2 = h >> 1;
 
-  Serial.print("base hue: ");
-  Serial.println(h);
-  Serial.println(config.Hue);
+  debuggershow++;
+  if (debuggershow % 64 == 0)
+  {
+    Serial.print("base hue: ");
+    Serial.println(h);
+    Serial.println(config.Hue);
+  }
 
   int cr = ((int) config.Color_R * (int) h) >> 8;
   int cg = ((int) config.Color_G * (int) h) >> 8;
@@ -253,129 +292,142 @@ void SetTimeToDisplay(int h, int m)
 
   if (config.itison==true)
   {
-    updateDisplay(word_es[0], word_es[1]);
-    updateDisplay(word_ist[0], word_ist[1]);    
+    updateDisplay2Words( word_es, word_ist );
   } 
   if (m>=0 && m<5)
   {
-    updateDisplay(word_es[0], word_es[1]);
-    updateDisplay(word_ist[0], word_ist[1]);        
+    updateDisplay2Words( word_es, word_ist );
   }  
   if (m>=30 && m<35)
   {
-    updateDisplay(word_es[0], word_es[1]);
-    updateDisplay(word_ist[0], word_ist[1]);            
+    updateDisplay2Words( word_es, word_ist );
   }
 
   if (m < 5)
   {
     if (h == 1)
     {
-      updateDisplay(word_h_ein[0], word_h_ein[1]);
+      updateDisplayWord( word_h_ein );      
+      //updateDisplay(word_h_ein[0], word_h_ein[1]);
     }
     else
     {
-      updateDisplay(word_hours[h][0], word_hours[h][1]);
+      updateDisplayWord( word_hours [h]);      
+      // updateDisplay(word_hours[h][0], word_hours[h][1]);
     }
-    updateDisplay(word_uhr[0], word_uhr[1]);
+    updateDisplayWord( word_uhr );      
+    //updateDisplay(word_uhr[0], word_uhr[1]);
     return;
   }
   
   if (m < 10) {
-    updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
-    updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_hours[h][0], word_hours[h][1]);
+    updateDisplay3Words( word_m_fuenf, word_m_nach, word_hours[h]);
+    
+    //updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
+    //updateDisplay(word_m_nach[0], word_m_nach[1]);
+    //updateDisplay(word_hours[h][0], word_hours[h][1]);
     return;
   }
 
   if (m < 15) {
-    updateDisplay(word_m_zehn[0], word_m_zehn[1]);
-    updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_hours[h][0], word_hours[h][1]);     
+    updateDisplay3Words( word_m_zehn, word_m_nach, word_hours[h]);    
+    //updateDisplay(word_m_zehn[0], word_m_zehn[1]);
+    //updateDisplay(word_m_nach[0], word_m_nach[1]);
+    //updateDisplay(word_hours[h][0], word_hours[h][1]);     
     return;
   }
 
   if (m < 20) {
     if (config.speechmode){      
-      updateDisplay(word_m_viertel[0], word_m_viertel[1]);      
-      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+      updateDisplay2Words( word_m_viertel, word_hours[hadd ]);      
+      //updateDisplay(word_m_viertel[0], word_m_viertel[1]);      
+      //updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     } else {
-      updateDisplay(word_m_viertel[0], word_m_viertel[1]);
-      updateDisplay(word_m_nach[0], word_m_nach[1]);
-      updateDisplay(word_hours[h][0], word_hours[h][1]);      
+      updateDisplay3Words( word_m_viertel, word_m_nach, word_hours[h]);
+      //updateDisplay(word_m_viertel[0], word_m_viertel[1]);
+      //updateDisplay(word_m_nach[0], word_m_nach[1]);
+      //updateDisplay(word_hours[h][0], word_hours[h][1]);      
     }    
     return;
   }  
 
   if (m < 25) {
     if (config.speechmode){      
-      updateDisplay(word_m_zehn[0], word_m_zehn[1]);  
-      updateDisplay(word_m_vor[0], word_m_vor[1]);
-      updateDisplay(word_m_halb[0], word_m_halb[1]);
-      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);     
+      updateDisplay4Words( word_m_zehn, word_m_vor, word_m_halb, word_hours[hadd]);
+      //updateDisplay(word_m_zehn[0], word_m_zehn[1]);  
+      //updateDisplay(word_m_vor[0], word_m_vor[1]);
+      //updateDisplay(word_m_halb[0], word_m_halb[1]);
+      //updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);     
     } else {
-      updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
-      updateDisplay(word_m_nach[0], word_m_nach[1]);
-      updateDisplay(word_hours[h][0], word_hours[h][1]);
+      updateDisplay3Words( word_m_zwanzig, word_m_nach, word_hours[h]);
+      //updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
+      //updateDisplay(word_m_nach[0], word_m_nach[1]);
+      //updateDisplay(word_hours[h][0], word_hours[h][1]);
     }
     return;
   }  
   
   if (m < 30) {
-    updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
-    updateDisplay(word_m_vor[0], word_m_vor[1]);
-    updateDisplay(word_m_halb[0], word_m_halb[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    updateDisplay4Words( word_m_fuenf, word_m_vor, word_m_halb, word_hours[hadd]);
+    // updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
+    // updateDisplay(word_m_vor[0], word_m_vor[1]);
+    //updateDisplay(word_m_halb[0], word_m_halb[1]);
+    // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     return;
   }
 
  if (m < 35) {
-    updateDisplay(word_m_halb[0], word_m_halb[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    updateDisplay2Words( word_m_halb, word_hours[hadd]);
+    // updateDisplay(word_m_halb[0], word_m_halb[1]);
+    // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     return;
   } 
   
   if (m < 40) {
-    updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
-    updateDisplay(word_m_nach[0], word_m_nach[1]);
-    updateDisplay(word_m_halb[0], word_m_halb[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    updateDisplay4Words( word_m_fuenf, word_m_nach, word_m_halb, word_hours[hadd]);
+    // updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
+    // updateDisplay(word_m_nach[0], word_m_nach[1]);
+    // updateDisplay(word_m_halb[0], word_m_halb[1]);
+    // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     return;
   } 
   
   if (m < 45) {
     if (config.speechmode){      
-      updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
-      updateDisplay(word_m_vor[0], word_m_vor[1]);
-      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);     
+      updateDisplay3Words( word_m_zwanzig, word_m_vor, word_hours[hadd]);
+      // updateDisplay(word_m_zwanzig[0], word_m_zwanzig[1]);
+      // updateDisplay(word_m_vor[0], word_m_vor[1]);
+      // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);     
     } else {
-      updateDisplay(word_m_zehn[0], word_m_zehn[1]);
-      updateDisplay(word_m_nach[0], word_m_nach[1]);
-      updateDisplay(word_m_halb[0], word_m_halb[1]);
-      updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+      updateDisplay4Words( word_m_zehn, word_m_nach, word_m_halb, word_hours[hadd]);
+      // updateDisplay(word_m_zehn[0], word_m_zehn[1]);
+      // updateDisplay(word_m_nach[0], word_m_nach[1]);
+      // updateDisplay(word_m_halb[0], word_m_halb[1]);
+      // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     }
     return;
   } 
   
   if (m < 50) {
-    updateDisplay(word_m_viertel[0], word_m_viertel[1]);
-    updateDisplay(word_m_vor[0], word_m_vor[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    updateDisplay3Words( word_m_viertel, word_m_vor, word_hours[hadd]);
+    // updateDisplay(word_m_viertel[0], word_m_viertel[1]);
+    // updateDisplay(word_m_vor[0], word_m_vor[1]);
+    // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     return;
   } 
   
   if (m < 55) {
-    updateDisplay(word_m_zehn[0], word_m_zehn[1]);
-    updateDisplay(word_m_vor[0], word_m_vor[1]);
-    updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
+    updateDisplay3Words( word_m_zehn, word_m_vor, word_hours[hadd]);
+    // updateDisplay(word_m_zehn[0], word_m_zehn[1]);
+    // updateDisplay(word_m_vor[0], word_m_vor[1]);
+    // updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
     return;
   } 
-  
-  updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
-  updateDisplay(word_m_vor[0], word_m_vor[1]);
-  updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);
-  
-  
+
+  updateDisplay3Words( word_m_fuenf, word_m_vor, word_hours[hadd]);
+  //updateDisplay(word_m_fuenf[0], word_m_fuenf[1]);
+  //updateDisplay(word_m_vor[0], word_m_vor[1]);
+  //updateDisplay(word_hours[hadd][0], word_hours[hadd][1]);  
 }
 
 void CalculateTime()
@@ -393,8 +445,6 @@ void CalculateTime()
     displayarray[l + 110] = '.';
   }
 }
-
-
 
 void WatchLoop()
 {

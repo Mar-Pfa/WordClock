@@ -42,10 +42,17 @@ FW History
    - remove ntpclient and switch to time.h to fix Daylight Saving Time behaviour
    Firmware Version 1012 changes
    - try wifi reconnect after 30 seconds if first try was not successfull
+   Firmware Versino 1013 changes
+   - support for "orig" watch dial 
+   Firmware Version 1014 changes
+   - support for Arduino OTA 
+   - support WifiMultiAp
+   - support mDNS responder - open website with devicename.local 
 */
 
-const int FW_VERSION = 1012;
+const int FW_VERSION = 1014;
 const long utcOffsetInSeconds = 3600;
+
 
 
 #include <ESP8266WiFi.h>
@@ -64,6 +71,7 @@ tm tm;                              // the structure tm holds time information i
 #include "config.h"
 #include "watch.h"
 #include "website.h"
+#include <ArduinoOTA.h>
 
 char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
 
@@ -107,9 +115,30 @@ void setup(){
   Serial.print(WiFi.localIP());
   Serial.println("/");  
   
+  
+  ArduinoOTA.onStart([]() {
+    Serial.println("Start");
+  });
+  ArduinoOTA.onEnd([]() {
+    Serial.println("\nEnd");
+  });
+  ArduinoOTA.onProgress([](unsigned int progress, unsigned int total) {
+    Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  });
+  ArduinoOTA.onError([](ota_error_t error) {
+    Serial.printf("Error[%u]: ", error);
+    if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+    else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+    else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+    else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+    else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  });  
+  ArduinoOTA.setHostname(config.DeviceName.c_str());
+  ArduinoOTA.begin();
 }
 
 void loop() {  
+  ArduinoOTA.handle();
   // timeClient.update();
   time(&now);
   localtime_r(&now, &tm);           // update the structure tm with the current time

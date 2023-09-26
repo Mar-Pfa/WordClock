@@ -134,7 +134,7 @@ void setDefaultConfig()
   config.ssid = "wordclock";
   config.password = defaultApPassword;
   config.dhcp = true;
-  config.ap = true;
+  config.ap = false;
   config.speechmode = true;
   config.itison = true;
   config.IP[0] = 192; config.IP[1] = 168; config.IP[2] = 2; config.IP[3] = 252;

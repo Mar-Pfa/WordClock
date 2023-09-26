@@ -6,7 +6,9 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266httpUpdate.h>
 #include <ESP8266HTTPClient.h>
+#include <ESP8266WiFiMulti.h>
 #include <WiFiClient.h>
+#include <ESP8266mDNS.h>
 #include "watch.h"
 
 #include "website/index.html.h";
@@ -18,6 +20,8 @@
 #include "website/body.html.h";
 
 ESP8266WebServer server(80);
+
+ESP8266WiFiMulti wifiMulti;     // Create an instance of the ESP8266WiFiMulti class, called 'wifiMulti'
 
 void serveAllOn()
 {
@@ -149,6 +153,8 @@ void AutoOta(String localIp, String deviceName, String mac, int fwVersion, Strin
   } else {
     Serial.print("current online firmware: ");
     Serial.print(newVersion);
+    Serial.print(" running already firmware ");
+    Serial.print(FW_VERSION);
     Serial.println(" no updated needed");
   }
 }
@@ -175,68 +181,79 @@ void initWifi()
     return;
   }
 
-  for (int i = 0; i < 3; i++)
+
+  bool hasSsid = false;
+
+  String initialSsid = "wordclock";
+
+  if (!config.ssid.equals(initialSsid))
   {
-    Serial.print("start Wifi try ");
-    Serial.println(i + 1);
-    if (tryStartWifi(ssid, password))
-    {
-      Serial.println("");
-      Serial.println("WiFi connected");
-      Serial.println("registering device...");
-      
-      AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION, ssid, password);
-      online = true;
-      return;
-    }
+    wifiMulti.addAP(ssid, password);
+    hasSsid=true;
   }
-  
   for (int i = 0; i < fallBackWifis; i++)
   {
-    Serial.print("start fallback wifi");
-    Serial.println(i + 1);
-    if (tryStartWifi(fallBackWifiSsid[i].c_str(), fallBackWifiPassword[i].c_str()))
-    {
-      Serial.println("");
-      Serial.println("WiFi connected");
-      Serial.println("registering device...");
-      
-      AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION, fallBackWifiSsid[i], fallBackWifiPassword[i]);
-      online = true;
-      return;
+    wifiMulti.addAP(fallBackWifiSsid[i].c_str(), fallBackWifiPassword[i].c_str());
+    hasSsid=true;
+  }  
+
+  int counter = 0;
+  if (hasSsid)
+  {
+    Serial.println("Connecting ...");
+    while (wifiMulti.run() != WL_CONNECTED && counter<10) { // Wait for the Wi-Fi to connect
+      delay(100);
+      Serial.print('.');
+      Lauflicht();
+      counter++;    
     }
   }
+
+  if (counter == 10 || hasSsid == false)
+  {  
+    Serial.print("cannot connect, switching to access point mode ");
+    WiFi.mode(WIFI_AP);
+    WiFi.softAP("wordclock", defaultApPassword);
+  }
   
-  Serial.print("cannot connect, switching to access point mode ");
-  /*
-  config.ap = true;
-  config.ssid = "wordclock";
-  config.password = defaultApPassword;
-  */
-  WiFi.mode(WIFI_AP);
-  WiFi.softAP(ssid, password);
+  Serial.println('\n');
+  Serial.print("Connected to ");
+  Serial.println(WiFi.SSID());              // Tell us what network we're connected to
+  Serial.print("IP address:\t");
+  Serial.println(WiFi.localIP());           // Send the IP address of the ESP8266 to the computer
+
+  if (MDNS.begin(config.DeviceName)) {              // Start the mDNS responder for esp8266.local
+    Serial.println("mDNS responder started");
+  } else {
+    Serial.println("Error setting up MDNS responder!");
+  }
+
+  AutoOta(WiFi.localIP().toString(), config.DeviceName, getMAC(), FW_VERSION, WiFi.SSID(), "");
+  return;
 }
 
 unsigned long wifiStatusCheckMillis;
 void WifiStatusCheck()
 {  
-  // when we have no active WiFi connection check it every 5 Minutes
+  // when we have no active WiFi connection check it every 10 Minutes
+  /*
   Serial.println("WiFi Status Check...");
   Serial.print("Online: ");
   Serial.println(online);
   Serial.print("AP: ");
   Serial.println(config.ap);
+  */
   if (online == false && config.ap == false)  
   {    
     unsigned long nowMillis = millis();
-    // check every 30 seconds if we can connect to the wifi
-    if (nowMillis < wifiStatusCheckMillis || wifiStatusCheckMillis+30000 < nowMillis)
+    // check every 10 Minutes if we can connect to the wifi
+    if (nowMillis < wifiStatusCheckMillis || wifiStatusCheckMillis+600000 < nowMillis)
     {
        Serial.println("trying...");
        initWifi();
        wifiStatusCheckMillis = millis();      
     } else {
-      Serial.println("waiting...");
+      //Serial.println("waiting...");
     }
   }
 }
