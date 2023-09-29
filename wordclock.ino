@@ -152,7 +152,7 @@ void loop() {
   }
   
   // every 8 hours -> restart
-  if (LoopCounter2 > 2 * 60 * 60 * 8)
+  if (LoopCounter2 > 20 * 60 * 60 * 8)
   {
       LoopCounter2 = 0;
       ESP.restart();
